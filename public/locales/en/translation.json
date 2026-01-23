@@ -1,0 +1,68 @@
+{
+    "nav": {
+        "home": "HOME",
+        "login": "LOGIN",
+        "admin": "ADMIN",
+        "about": "ABOUT US",
+        "membership": "BECOME A MEMBER",
+        "logout": "LOGOUT"
+    },
+    "home": {
+        "filter": "FILTER:",
+        "search_placeholder": "SEARCH_DATABASE...",
+        "search_results": "Search Results",
+        "latest_transmissions": "Latest Transmissions",
+        "archives": "Archives",
+        "found_nodes": "Found: {{count}} Nodes",
+        "no_results": "NO_DATA_MATCHING_QUERY",
+        "adjust_filters": "Try adjusting your filters or search terms.",
+        "read_more": "Read",
+        "hero_title": "Architecting The Digital Void.",
+        "hero_subtitle": "Explorations in high-performance rendering, interface design, and the philosophical implications of software engineering."
+    },
+    "article": {
+        "back_to_intelligence": "BACK_TO_INTELLIGENCE",
+        "published": "PUBLISHED",
+        "updated": "UPDATED",
+        "share_transmission": "Share Transmission",
+        "transmit_data": "TRANSMIT_DATA",
+        "link_copied": "LINK_COPIED",
+        "related_data": "Related Data",
+        "article_not_found": "Article Not Found",
+        "return_base": "Return to Base"
+    },
+    "footer": {
+        "designed_by": "DESIGNED & ENGINEERED BY AI",
+        "copy": "LUXTECH SYSTEM"
+    },
+    "about": {
+        "role_label": "// The Architect",
+        "hero_title_1": "Crafting Digital",
+        "hero_title_2": "Experiences.",
+        "hero_desc": "I'm a Full Stack Engineer and UI/UX Designer obsessed with the intersection of performance and aesthetics. I build high-end web applications that feel alive, using modern architecture to solve complex problems with elegant code.",
+        "contact_me": "Contact Me",
+        "stat_years": "Years Exp.",
+        "stat_projects": "Projects",
+        "stat_contributions": "Contributions",
+        "stat_coffee": "Coffee",
+        "journey_title": "The Journey",
+        "timeline_2024_title": "Senior Frontend Architect",
+        "timeline_2024_company": "Global Tech Giants",
+        "timeline_2024_desc": "Leading the migration to Next.js App Router and establishing the new enterprise design system. Focusing on performance optimization and developer experience.",
+        "timeline_2022_title": "UI/UX Specialist",
+        "timeline_2022_company": "Creative Digital Agency",
+        "timeline_2022_desc": "Designed award-winning interfaces for high-end luxury brands using WebGL and advanced micro-interactions. Bridged the gap between design and engineering teams.",
+        "timeline_2019_title": "Full Stack Developer",
+        "timeline_2019_company": "Innovative Startup",
+        "timeline_2019_desc": "Built scalable microservices and laid the foundation for the core product API. Learned the importance of type safety and robust backend architecture.",
+        "timeline_2016_company": "The Beginning",
+        "timeline_2016_desc": "Wrote the first line of code. Obsession with pixel perfection and logical structures began here.",
+        "arsenal_title": "The Arsenal",
+        "tech_frontend": "React, Next.js, TypeScript",
+        "tech_styling": "Tailwind, Framer Motion",
+        "tech_backend": "Node.js, PostgreSQL, Prisma",
+        "tech_deploy": "Vercel, AWS, Docker",
+        "philosophy_label": "My Philosophy",
+        "philosophy_quote": "We are not just writing code; we are architecting the lens through which humanity perceives reality. Speed is a feature. Beauty is a function."
+    }
+}

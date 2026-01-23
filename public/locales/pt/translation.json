@@ -1,0 +1,68 @@
+{
+    "nav": {
+        "home": "INÍCIO",
+        "login": "ENTRAR",
+        "admin": "ADMIN",
+        "about": "SOBRE NÓS",
+        "membership": "SEJA MEMBRO",
+        "logout": "SAIR"
+    },
+    "home": {
+        "filter": "FILTRO:",
+        "search_placeholder": "PESQUISAR_DB...",
+        "search_results": "Resultados da Pesquisa",
+        "latest_transmissions": "Últimas Transmissões",
+        "archives": "Arquivos",
+        "found_nodes": "Encontrado: {{count}} Nós",
+        "no_results": "NENHUM_DADO_ENCONTRADO",
+        "adjust_filters": "Tente ajustar seus filtros ou termos de pesquisa.",
+        "read_more": "Ler",
+        "hero_title": "Arquitetando o Vazio Digital.",
+        "hero_subtitle": "Explorações em renderização de alto desempenho, design de interface e as implicações filosóficas da engenharia de software."
+    },
+    "article": {
+        "back_to_intelligence": "VOLTAR_PARA_INTELIGENCIA",
+        "published": "PUBLICADO",
+        "updated": "ATUALIZADO",
+        "share_transmission": "Compartilhar Transmissão",
+        "transmit_data": "TRANSMITIR_DADOS",
+        "link_copied": "LINK_COPIADO",
+        "related_data": "Dados Relacionados",
+        "article_not_found": "Artigo Não Encontrado",
+        "return_base": "Retornar à Base"
+    },
+    "footer": {
+        "designed_by": "PROJETADO & ENGENHARIA POR IA",
+        "copy": "SISTEMA LUXTECH"
+    },
+    "about": {
+        "role_label": "// O Arquiteto",
+        "hero_title_1": "Criando Experiências",
+        "hero_title_2": "Digitais.",
+        "hero_desc": "Sou um Engenheiro Full Stack e Designer UI/UX obcecado pela interseção entre desempenho e estética. Construo aplicações web de alto nível que ganham vida, usando arquitetura moderna para resolver problemas complexos com código elegante.",
+        "contact_me": "Contate-me",
+        "stat_years": "Anos Exp.",
+        "stat_projects": "Projetos",
+        "stat_contributions": "Contribuições",
+        "stat_coffee": "Café",
+        "journey_title": "A Jornada",
+        "timeline_2024_title": "Arquiteto Frontend Sênior",
+        "timeline_2024_company": "Gigantes Tecnológicos Globais",
+        "timeline_2024_desc": "Liderando a migração para o Next.js App Router e estabelecendo o novo design system corporativo. Foco em otimização de desempenho e experiência do desenvolvedor.",
+        "timeline_2022_title": "Especialista em UI/UX",
+        "timeline_2022_company": "Agência Digital Criativa",
+        "timeline_2022_desc": "Design de interfaces premiadas para marcas de luxo usando WebGL e micro-interações avançadas. Ponte entre as equipes de design e engenharia.",
+        "timeline_2019_title": "Desenvolvedor Full Stack",
+        "timeline_2019_company": "Startup Inovadora",
+        "timeline_2019_desc": "Construção de microsserviços escaláveis e fundação da API principal do produto. Aprendizado sobre a importância da segurança de tipos e arquitetura robusta de backend.",
+        "timeline_2016_company": "O Começo",
+        "timeline_2016_desc": "Escrevi a primeira linha de código. A obsessão pela perfeição de pixels e estruturas lógicas começou aqui.",
+        "arsenal_title": "O Arsenal",
+        "tech_frontend": "React, Next.js, TypeScript",
+        "tech_styling": "Tailwind, Framer Motion",
+        "tech_backend": "Node.js, PostgreSQL, Prisma",
+        "tech_deploy": "Vercel, AWS, Docker",
+        "philosophy_label": "Minha Filosofia",
+        "philosophy_quote": "Não estamos apenas escrevendo código; estamos arquitetando a lente através da qual a humanidade percebe a realidade. Velocidade é uma funcionalidade. Beleza é uma função."
+    }
+}
