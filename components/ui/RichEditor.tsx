@@ -214,8 +214,9 @@ export const RichEditor: React.FC<RichEditorProps> = ({ content, onChange, edita
             // If functionality is missing, we must re-enable or check package versions.
             // Re-enabling essentials but ignoring warnings if they persist, focusing on crash fix first.
             // Actually, let's keep Link but maybe pure default? No, let's keep them and focus on BubbleMenu crash.
-            Underline,
-            Link.configure({ openOnClick: false }),
+            // Underline and Link are reported as duplicates, likely included in StarterKit v3.
+            // Underline,
+            // Link.configure({ openOnClick: false }),
             ResizeImage,
             Youtube.configure({ width: 640, height: 480 }),
             Table.configure({ resizable: true }),
@@ -270,7 +271,7 @@ export const RichEditor: React.FC<RichEditorProps> = ({ content, onChange, edita
                 <BubbleMenu
                     editor={editor}
                     shouldShow={({ state, editor }) => {
-                        return !!editor && !!editor.view && !state.selection.empty && editor.isEditable;
+                        return !!editor && !!editor.view && !!editor.view.dom && !state.selection.empty && editor.isEditable;
                     }}
                 >
                     <div className="flex gap-1 bg-surface border border-white/10 p-1 rounded-lg shadow-xl backdrop-blur-md">

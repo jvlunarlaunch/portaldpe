@@ -1,9 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowUpRight, Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Article } from '../../types';
+import { useLoading } from '../../context/LoadingContext';
+import { fetchArticleBySlug } from '../../api';
 
 interface ArticleCardProps {
   article: Article;
@@ -12,12 +14,39 @@ interface ArticleCardProps {
 
 export const ArticleCard: React.FC<ArticleCardProps> = ({ article, className = '' }) => {
   const { i18n } = useTranslation();
+  const navigate = useNavigate();
+  const { setIsNavigating } = useLoading();
 
   const displayTitle = (i18n.language === 'pt' && article.title_pt) ? article.title_pt : article.title;
   const displayExcerpt = (i18n.language === 'pt' && article.excerpt_pt) ? article.excerpt_pt : article.excerpt;
 
+  const handleClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsNavigating(true);
+    try {
+      // Small artificial delay for premium feel if loading is too fast
+      const startTime = Date.now();
+      const fetchedArticle = await fetchArticleBySlug(article.slug);
+      const endTime = Date.now();
+
+      // Ensure loader visible for at least 400ms for visual feedback
+      if (endTime - startTime < 400) {
+        await new Promise(resolve => setTimeout(resolve, 400 - (endTime - startTime)));
+      }
+
+      navigate(`/article/${article.slug}`, {
+        state: { preloadedArticle: fetchedArticle }
+      });
+    } catch (error) {
+      console.error("Failed to pre-load article", error);
+      navigate(`/article/${article.slug}`);
+    } finally {
+      setIsNavigating(false);
+    }
+  };
+
   return (
-    <Link to={`/article/${article.id}`} className={`block h-full ${className}`}>
+    <div onClick={handleClick} className={`block h-full cursor-pointer ${className}`}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -77,6 +106,6 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, className = '
           </div>
         </div>
       </motion.div>
-    </Link>
+    </div>
   );
 };

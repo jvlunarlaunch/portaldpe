@@ -8,28 +8,31 @@ import { Home } from './pages/Home';
 import { Admin } from './pages/Admin';
 import { ArticlePage } from './pages/ArticlePage';
 import { About } from './pages/About';
+import { LoadingProvider } from './context/LoadingContext';
 
 const App: React.FC = () => {
   return (
     <HelmetProvider>
       <Router>
-        <BackgroundWrapper>
-          <Navbar />
-          <main className="min-h-screen">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/article/:id" element={<ArticlePage />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="/about" element={<About />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </main>
+        <LoadingProvider>
+          <BackgroundWrapper>
+            <Navbar />
+            <main className="min-h-screen">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/article/:slug" element={<ArticlePage />} />
+                <Route path="/admin" element={<Admin />} />
+                <Route path="/about" element={<About />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </main>
 
-          {/* Footer */}
-          <footer className="border-t border-white/5 bg-black py-12 text-center">
-            <FooterContent />
-          </footer>
-        </BackgroundWrapper>
+            {/* Footer */}
+            <footer className="border-t border-white/5 bg-black py-12 text-center">
+              <FooterContent />
+            </footer>
+          </BackgroundWrapper>
+        </LoadingProvider>
       </Router>
     </HelmetProvider>
   );

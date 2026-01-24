@@ -2,15 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next';
-import { ArrowDown, Filter, Search, X, ChevronLeft, ChevronRight, ArrowUpRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ArrowDown, Filter, Search, X, ChevronLeft, ChevronRight, ArrowUpRight, Loader2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArticleCard } from '../components/ui/ArticleCard';
 import { Button } from '../components/ui/Button';
-import { fetchArticles } from '../api';
+import { fetchArticles, fetchArticleBySlug } from '../api';
 import { Article } from '../types';
+import { useLoading } from '../context/LoadingContext';
 
 export const Home: React.FC = () => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const { setIsNavigating } = useLoading();
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -69,10 +72,33 @@ export const Home: React.FC = () => {
     return matchesCategory && matchesSearch;
   });
 
+  const handleHeroClick = async (e: React.MouseEvent, slug: string) => {
+    e.preventDefault();
+    setIsNavigating(true);
+    try {
+      const startTime = Date.now();
+      const fetchedArticle = await fetchArticleBySlug(slug);
+      const endTime = Date.now();
+
+      if (endTime - startTime < 400) {
+        await new Promise(resolve => setTimeout(resolve, 400 - (endTime - startTime)));
+      }
+
+      navigate(`/article/${slug}`, {
+        state: { preloadedArticle: fetchedArticle }
+      });
+    } catch (error) {
+      console.error("Failed to pre-load article", error);
+      navigate(`/article/${slug}`);
+    } finally {
+      setIsNavigating(false);
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="font-mono text-primary animate-pulse">CONNECTING_TO_DATABASE...</div>
+      <div className="min-h-screen flex items-center justify-center pt-20">
+        <Loader2 className="animate-spin text-primary" size={40} />
       </div>
     );
   }
@@ -170,11 +196,11 @@ export const Home: React.FC = () => {
                     </span>
                   </div>
 
-                  <Link to={`/article/${currentHeroArticle.id}`} className="group/link block">
+                  <div onClick={(e) => handleHeroClick(e, currentHeroArticle.slug)} className="group/link block cursor-pointer">
                     <h3 className="font-display text-2xl md:text-3xl font-bold text-white leading-tight mb-3 group-hover/link:underline decoration-1 underline-offset-4 transition-all">
                       {heroTitle}
                     </h3>
-                  </Link>
+                  </div>
 
                   <p className="font-body text-text-muted text-sm line-clamp-2 mb-6">
                     {heroExcerpt}
@@ -196,11 +222,11 @@ export const Home: React.FC = () => {
                     >
                       <ChevronRight size={18} />
                     </Button>
-                    <Link to={`/article/${currentHeroArticle.id}`} className="ml-auto">
+                    <div onClick={(e) => handleHeroClick(e, currentHeroArticle.slug)} className="ml-auto cursor-pointer">
                       <Button className="!px-4 !py-2 !text-xs gap-2">
                         {t('home.read_more')} <ArrowUpRight size={14} />
                       </Button>
-                    </Link>
+                    </div>
                   </div>
                 </motion.div>
               </div>

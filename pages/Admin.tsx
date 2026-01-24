@@ -6,6 +6,18 @@ import { RichEditor } from '../components/ui/RichEditor';
 import { fetchArticles, fetchCategories, createArticle, updateArticle, deleteArticle, uploadImage, login as loginApi, logout as logoutApi, fetchAuthors, createAuthor, updateAuthor } from '../api';
 import { Article, Author } from '../types';
 
+const slugify = (text: string) => {
+  return text
+    .toString()
+    .normalize('NFD') // Normaliza para decompor acentos
+    .replace(/[\u0300-\u036f]/g, '') // Remove os acentos
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9 ]/g, '') // Remove caracteres especiais
+    .replace(/\s+/g, '-') // Troca espaços por hífens
+    .replace(/-+/g, '-'); // Remove hífens duplicados
+};
+
 export const Admin: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<Author | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -27,6 +39,9 @@ export const Admin: React.FC = () => {
 
   // English Fields
   const [articleTitle, setArticleTitle] = useState('');
+  const [articleSlug, setArticleSlug] = useState('');
+  const [slugSource, setSlugSource] = useState<'en' | 'pt'>('en');
+  const [isSlugCustom, setIsSlugCustom] = useState(false);
   const [editorContent, setEditorContent] = useState('');
   const [articleExcerpt, setArticleExcerpt] = useState('');
 
@@ -65,7 +80,7 @@ export const Admin: React.FC = () => {
 
   const loadData = async () => {
     setLoading(true);
-    const [arts, cats, auths] = await Promise.all([fetchArticles(), fetchCategories(), fetchAuthors()]);
+    const [arts, cats, auths] = await Promise.all([fetchArticles({ status: 'all' }), fetchCategories(), fetchAuthors()]);
     setArticles(arts);
     setCategories(cats);
     setAuthors(auths);
@@ -98,6 +113,9 @@ export const Admin: React.FC = () => {
     setArticleExcerpt('');
 
     setArticleTitlePt('');
+    setArticleSlug('');
+    setSlugSource('en');
+    setIsSlugCustom(false);
     setEditorContentPt('');
     setArticleExcerptPt('');
 
@@ -115,6 +133,8 @@ export const Admin: React.FC = () => {
   const handleEdit = (article: Article) => {
     setEditingId(article.id);
     setArticleTitle(article.title);
+    setArticleSlug(article.slug);
+    setIsSlugCustom(true); // Don't auto-overwrite existing slugs on edit unless changed
     setEditorContent(article.content || '');
     setArticleExcerpt(article.excerpt);
 
@@ -172,7 +192,8 @@ export const Admin: React.FC = () => {
         main: isMain,
         showThumbnail: showThumbnail,
         authorId: currentUser?.id,
-        status: newStatus
+        status: newStatus,
+        slug: articleSlug
       };
 
       if (editingId) {
@@ -340,8 +361,61 @@ export const Admin: React.FC = () => {
                     placeholder="Article Title (EN)..."
                     className="w-full bg-transparent border-none text-4xl font-display font-bold text-white placeholder-white/20 focus:outline-none focus:ring-0 px-0"
                     value={articleTitle}
-                    onChange={(e) => setArticleTitle(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setArticleTitle(val);
+                      if (!isSlugCustom && slugSource === 'en') {
+                        setArticleSlug(slugify(val));
+                      }
+                    }}
                   />
+                  <div className="flex items-center gap-4 mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono text-text-muted">SLUG SOURCE:</span>
+                      <button
+                        onClick={() => {
+                          setSlugSource('en');
+                          if (!isSlugCustom) setArticleSlug(slugify(articleTitle));
+                        }}
+                        className={`text-[9px] font-mono px-2 py-0.5 rounded border ${slugSource === 'en' ? 'bg-primary/20 border-primary text-primary' : 'bg-white/5 border-white/10 text-text-muted hover:text-white'}`}
+                      >
+                        TITLE (EN)
+                      </button>
+                      <button
+                        onClick={() => {
+                          setSlugSource('pt');
+                          if (!isSlugCustom) setArticleSlug(slugify(articleTitlePt));
+                        }}
+                        className={`text-[9px] font-mono px-2 py-0.5 rounded border ${slugSource === 'pt' ? 'bg-primary/20 border-primary text-primary' : 'bg-white/5 border-white/10 text-text-muted hover:text-white'}`}
+                      >
+                        TITULO (PT)
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 group/slug">
+                    <span className="text-[10px] font-mono text-text-muted">URL SLUG:</span>
+                    <input
+                      type="text"
+                      className="bg-transparent border-none text-[10px] font-mono text-primary focus:outline-none focus:ring-0 p-0 min-w-[200px]"
+                      value={articleSlug}
+                      onChange={(e) => {
+                        setArticleSlug(e.target.value);
+                        setIsSlugCustom(true);
+                      }}
+                      placeholder="auto-generated-slug"
+                    />
+                    {isSlugCustom && (
+                      <button
+                        onClick={() => {
+                          setIsSlugCustom(false);
+                          setArticleSlug(slugify(slugSource === 'en' ? articleTitle : articleTitlePt));
+                        }}
+                        className="text-[8px] font-mono text-text-muted hover:text-white"
+                      >
+                        [RESET]
+                      </button>
+                    )}
+                  </div>
                   <textarea
                     placeholder="Short Excerpt (EN)..."
                     className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm focus:border-primary focus:outline-none"
@@ -356,7 +430,13 @@ export const Admin: React.FC = () => {
                     placeholder="Article Title (PT)..."
                     className="w-full bg-transparent border-none text-4xl font-display font-bold text-white placeholder-white/20 focus:outline-none focus:ring-0 px-0"
                     value={articleTitlePt}
-                    onChange={(e) => setArticleTitlePt(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setArticleTitlePt(val);
+                      if (!isSlugCustom && slugSource === 'pt') {
+                        setArticleSlug(slugify(val));
+                      }
+                    }}
                   />
                   <textarea
                     placeholder="Short Excerpt (PT)..."

@@ -202,8 +202,15 @@ app.get('/api/articles', (req, res) => {
     const category = req.query.category;
     const status = req.query.status || 'published';
 
-    let whereClause = "WHERE articles.status = ?";
-    let params = [status];
+    let whereClause = "";
+    let params = [];
+
+    if (status !== 'all') {
+        whereClause = "WHERE articles.status = ?";
+        params.push(status);
+    } else {
+        whereClause = "WHERE 1=1"; // Dummy true condition to simplify adding AND clauses
+    }
 
     if (category && category !== 'ALL') {
         whereClause += " AND categories.name = ?";

@@ -1,20 +1,48 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
 import { useTranslation } from 'react-i18next'; // Added import
 import { ArrowLeft, Clock, Calendar, Tag, Share2, Bookmark, Loader2, Copy, Check } from 'lucide-react';
-import { fetchArticleById, fetchRelatedArticles } from '../api';
+import { fetchArticleBySlug, fetchRelatedArticles } from '../api';
 import { Article } from '../types';
 import { Button } from '../components/ui/Button';
+import { useLoading } from '../context/LoadingContext';
 
 export const ArticlePage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const [article, setArticle] = useState<Article | null>(null);
+  const { slug } = useParams<{ slug: string }>();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { setIsNavigating } = useLoading();
+  const [article, setArticle] = useState<Article | null>(location.state?.preloadedArticle || null);
   const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!location.state?.preloadedArticle);
   const [copied, setCopied] = useState(false);
-  const { t, i18n } = useTranslation(); // Move hook to top
+  const { t, i18n } = useTranslation();
+
+  const handleRelatedClick = async (e: React.MouseEvent, relatedSlug: string) => {
+    e.preventDefault();
+    setIsNavigating(true);
+    try {
+      const startTime = Date.now();
+      const fetchedArticle = await fetchArticleBySlug(relatedSlug);
+      const endTime = Date.now();
+
+      if (endTime - startTime < 400) {
+        await new Promise(resolve => setTimeout(resolve, 400 - (endTime - startTime)));
+      }
+
+      setArticle(fetchedArticle); // Update locally for faster feel
+      navigate(`/article/${relatedSlug}`, {
+        state: { preloadedArticle: fetchedArticle }
+      });
+    } catch (error) {
+      console.error("Failed to pre-load related article", error);
+      navigate(`/article/${relatedSlug}`);
+    } finally {
+      setIsNavigating(false);
+    }
+  };
 
   const handleShare = async () => {
     const url = window.location.href;
@@ -37,20 +65,30 @@ export const ArticlePage: React.FC = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      setLoading(true);
-      if (id) {
-        const [fetchedArticle, related] = await Promise.all([
-          fetchArticleById(id),
-          fetchRelatedArticles(id)
-        ]);
-        setArticle(fetchedArticle);
+      // If we don't have an article or the slug changed and doesn't match the current article
+      if (!article || article.slug !== slug) {
+        setLoading(true);
+        const targetSlug = slug;
+        if (targetSlug) {
+          const fetchedArticle = await fetchArticleBySlug(targetSlug);
+          setArticle(fetchedArticle);
+
+          if (fetchedArticle) {
+            const related = await fetchRelatedArticles(fetchedArticle.id);
+            setRelatedArticles(related as Article[]);
+          }
+        }
+        setLoading(false);
+      } else if (relatedArticles.length === 0 && article) {
+        // We have the article (preloaded) but not the related ones
+        const related = await fetchRelatedArticles(article.id);
         setRelatedArticles(related as Article[]);
+        setLoading(false);
       }
-      setLoading(false);
       window.scrollTo(0, 0);
     };
     loadData();
-  }, [id]);
+  }, [slug]);
 
   if (loading) {
     return (
@@ -239,12 +277,12 @@ export const ArticlePage: React.FC = () => {
                   {relatedArticles.map(related => {
                     const relatedTitle = (i18n.language === 'pt' && related.title_pt) ? related.title_pt : related.title;
                     return (
-                      <Link key={related.id} to={`/article/${related.id}`} className="group block">
+                      <div key={related.id} onClick={(e) => handleRelatedClick(e, related.slug)} className="group block cursor-pointer">
                         <div className="text-xs font-mono text-primary mb-1">{related.category}</div>
                         <div className="text-sm text-gray-300 group-hover:text-white transition-colors">
                           {relatedTitle}
                         </div>
-                      </Link>
+                      </div>
                     )
                   })}
                 </div>

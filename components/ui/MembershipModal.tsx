@@ -10,40 +10,40 @@ interface MembershipModalProps {
 
 // Define the steps structure
 const STEPS = [
-  { 
-    id: 'name', 
-    label: 'IDENTITY', 
-    question: "What should we call you?", 
-    placeholder: "Enter your full name", 
-    type: 'text' 
+  {
+    id: 'name',
+    label: 'IDENTITY',
+    question: "What should we call you?",
+    placeholder: "Enter your full name",
+    type: 'text'
   },
-  { 
-    id: 'email', 
-    label: 'COMM_LINK', 
-    question: "Where should we send the access key?", 
-    placeholder: "name@example.com", 
-    type: 'email' 
+  {
+    id: 'email',
+    label: 'COMM_LINK',
+    question: "Where should we send the access key?",
+    placeholder: "name@example.com",
+    type: 'email'
   },
-  { 
-    id: 'role', 
-    label: 'CLASS', 
-    question: "What is your primary specialization?", 
-    placeholder: "e.g. Frontend Architect, UI Designer...", 
-    type: 'text' 
+  {
+    id: 'role',
+    label: 'CLASS',
+    question: "What is your primary specialization?",
+    placeholder: "e.g. Frontend Architect, UI Designer...",
+    type: 'text'
   },
-  { 
-    id: 'experience', 
-    label: 'LEVEL', 
-    question: "How long have you been in the field?", 
-    placeholder: "e.g. 5 years, Just started...", 
-    type: 'text' 
+  {
+    id: 'experience',
+    label: 'LEVEL',
+    question: "How long have you been in the field?",
+    placeholder: "e.g. 5 years, Just started...",
+    type: 'text'
   },
-  { 
-    id: 'stack', 
-    label: 'WEAPON', 
-    question: "What is your preferred tech stack?", 
-    placeholder: "e.g. React, Rust, Go...", 
-    type: 'text' 
+  {
+    id: 'stack',
+    label: 'WEAPON',
+    question: "What is your preferred tech stack?",
+    placeholder: "e.g. React, Rust, Go...",
+    type: 'text'
   }
 ];
 
@@ -71,7 +71,7 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
 
   const handleNext = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    
+
     // Validate current field
     const currentFieldId = STEPS[currentStep].id;
     if (!formData[currentFieldId] || formData[currentFieldId].trim() === '') return;
@@ -117,7 +117,7 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
           setFormData({ name: '', email: '', role: '', experience: '', stack: '' });
         }, 500);
       }, 3000);
-      
+
     } catch (error) {
       console.error('Submission error:', error);
       setStatus('error');
@@ -177,16 +177,16 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
               <div className="absolute bottom-0 left-0 h-40 w-full bg-gradient-to-t from-primary/5 to-transparent pointer-events-none" />
 
               {/* Close Button */}
-              <button 
+              <button
                 onClick={onClose}
-                className="absolute top-6 right-6 z-20 rounded-full p-2 text-text-muted hover:bg-white/5 hover:text-white transition-colors"
+                className="absolute top-4 right-4 z-20 rounded-full p-1.5 text-text-muted hover:bg-white/5 hover:text-white transition-colors"
               >
-                <X size={20} />
+                <X size={18} />
               </button>
 
               {status === 'success' ? (
                 <div className="flex flex-1 flex-col items-center justify-center p-12 text-center">
-                  <motion.div 
+                  <motion.div
                     initial={{ scale: 0 }} animate={{ scale: 1 }}
                     className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-success/20 text-success border border-success/30 shadow-[0_0_30px_-5px_rgba(16,185,129,0.3)]"
                   >
@@ -196,7 +196,7 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
                   <p className="text-text-muted font-body">Welcome to the inner circle.</p>
                 </div>
               ) : (
-                <div className="flex flex-1 flex-col p-8 md:p-12">
+                <div className="flex flex-1 flex-col pt-16 pb-8 px-6 md:p-12">
                   {/* Header */}
                   <div className="mb-8">
                     <div className="flex items-center justify-between mb-4">
@@ -212,7 +212,7 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
                     </div>
                     {/* Progress Bar */}
                     <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                      <motion.div 
+                      <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${progress}%` }}
                         transition={{ duration: 0.5 }}
@@ -241,7 +241,7 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
                           <h3 className="font-display text-2xl md:text-3xl font-bold text-white mb-6 leading-tight">
                             {STEPS[currentStep].question}
                           </h3>
-                          <input 
+                          <input
                             ref={inputRef}
                             required
                             type={STEPS[currentStep].type}
@@ -267,7 +267,7 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
                         BACK
                       </button>
 
-                      <Button 
+                      <Button
                         type="submit"
                         disabled={status === 'loading'}
                         className="!px-6 group"
@@ -282,10 +282,10 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
                         )}
                       </Button>
                     </div>
-                    
+
                     {/* Enter Hint */}
                     <div className="absolute bottom-[-20px] right-0 hidden md:block">
-                       <span className="text-[10px] font-mono text-white/20">PRESS ENTER ↵</span>
+                      <span className="text-[10px] font-mono text-white/20">PRESS ENTER ↵</span>
                     </div>
 
                     {status === 'error' && (
