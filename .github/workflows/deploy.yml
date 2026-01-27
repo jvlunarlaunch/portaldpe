@@ -27,11 +27,11 @@ jobs:
       - name: 🚀 Deploy to Hostinger via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
+          server: ftp.novo.portaldpe.com.br
+          username: u191607503.portaldpe
           password: ${{ secrets.FTP_PASSWORD }}
           handler: ftp
           local-dir: ./dist/
-          server-dir: ./public_html/ # Ajuste conforme a pasta na Hostinger (ex: /public_html/)
-          protocol: ftp # ou ftps conforme sua configuração na Hostinger
-          port: 21 # porta padrão 21
+          server-dir: /home/u191607503/domains/novo.portaldpe.com.br/public_html/
+          port: 21
+          protocol: ftp
