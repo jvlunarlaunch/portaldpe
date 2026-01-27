@@ -57,7 +57,7 @@ const MenuBar = ({ editor, onSetLink }: { editor: any, onSetLink: () => void }) 
     if (!editor) return null;
 
     const addYoutube = () => {
-        const url = prompt('Enter YouTube URL');
+        const url = prompt('Cole o link do YouTube:');
         if (url) editor.commands.setYoutubeVideo({ src: url });
     };
 
@@ -68,7 +68,7 @@ const MenuBar = ({ editor, onSetLink }: { editor: any, onSetLink: () => void }) 
                 const { url } = await uploadImage(file);
                 editor.chain().focus().setImage({ src: url }).run();
             } catch (error) {
-                alert('Failed to upload image');
+                alert('Falha ao subir a imagem');
             }
         }
     };
@@ -78,7 +78,7 @@ const MenuBar = ({ editor, onSetLink }: { editor: any, onSetLink: () => void }) 
     };
 
     const addMath = () => {
-        const latex = prompt('Enter LaTeX formula', '\\frac{a}{b}');
+        const latex = prompt('Digite a fórmula LaTeX:', '\\frac{a}{b}');
         if (latex) editor.commands.insertInlineMath({ latex });
     };
 
@@ -190,14 +190,14 @@ const MenuBar = ({ editor, onSetLink }: { editor: any, onSetLink: () => void }) 
             {editor.isActive('table') && (
                 <div className="flex gap-1 pl-2 border-l border-white/10 ml-1">
                     {/* Row Operations (Horizontal) */}
-                    <Button variant="ghost" size="sm" title="Add Row" onClick={() => editor.chain().focus().addRowAfter().run()}><Minus size={14} /></Button>
-                    <Button variant="ghost" size="sm" title="Delete Row" onClick={() => editor.chain().focus().deleteRow().run()} className="text-red-400"><Minus size={14} /></Button>
+                    <Button variant="ghost" size="sm" title="Adicionar Linha" onClick={() => editor.chain().focus().addRowAfter().run()}><Minus size={14} /></Button>
+                    <Button variant="ghost" size="sm" title="Excluir Linha" onClick={() => editor.chain().focus().deleteRow().run()} className="text-red-400"><Minus size={14} /></Button>
 
                     {/* Column Operations (Vertical) */}
-                    <Button variant="ghost" size="sm" title="Add Column" onClick={() => editor.chain().focus().addColumnAfter().run()}><Minus size={14} className="rotate-90" /></Button>
-                    <Button variant="ghost" size="sm" title="Delete Column" onClick={() => editor.chain().focus().deleteColumn().run()} className="text-red-400"><Minus size={14} className="rotate-90" /></Button>
+                    <Button variant="ghost" size="sm" title="Adicionar Coluna" onClick={() => editor.chain().focus().addColumnAfter().run()}><Minus size={14} className="rotate-90" /></Button>
+                    <Button variant="ghost" size="sm" title="Excluir Coluna" onClick={() => editor.chain().focus().deleteColumn().run()} className="text-red-400"><Minus size={14} className="rotate-90" /></Button>
 
-                    <Button variant="ghost" size="sm" title="Delete Table" onClick={() => editor.chain().focus().deleteTable().run()} className="text-red-500"><Trash2 size={14} /></Button>
+                    <Button variant="ghost" size="sm" title="Excluir Tabela" onClick={() => editor.chain().focus().deleteTable().run()} className="text-red-500"><Trash2 size={14} /></Button>
                 </div>
             )}
         </div>
@@ -230,7 +230,7 @@ export const RichEditor: React.FC<RichEditorProps> = ({ content, onChange, edita
             Details, DetailsSummary, DetailsContent,
             Mention.configure({
                 suggestion: {
-                    items: ({ query }) => ['AI', 'LuxTech', 'Future', 'Quantum'].filter(i => i.toLowerCase().startsWith(query.toLowerCase())).slice(0, 5),
+                    items: ({ query }) => ['Pernambuco', 'Conservadorismo', 'Liberdade', 'Notícias'].filter(i => i.toLowerCase().startsWith(query.toLowerCase())).slice(0, 5),
                 }
             }),
         ],
@@ -238,7 +238,7 @@ export const RichEditor: React.FC<RichEditorProps> = ({ content, onChange, edita
         editable,
         onUpdate: ({ editor }) => onChange(editor.getHTML()),
         editorProps: {
-            attributes: { class: 'tiptap prose prose-invert max-w-none focus:outline-none min-h-[400px] p-8' },
+            attributes: { class: 'tiptap prose max-w-none focus:outline-none min-h-[400px] p-8 !text-slate-900 bg-white' },
         },
     });
 
@@ -267,9 +267,11 @@ export const RichEditor: React.FC<RichEditorProps> = ({ content, onChange, edita
         <div className="bg-surface/30 rounded-2xl border border-white/10 overflow-hidden shadow-2xl transition-all hover:border-white/20">
             {editable && <MenuBar editor={editor} onSetLink={setLink} />}
 
-            {editable && editor && !editor.isDestroyed && editor.isEditable && (
+            {/* BubbleMenu causing crashes, temporarily disabled */}
+            {/* {editable && editor && !editor.isDestroyed && editor.isEditable && (
                 <BubbleMenu
                     editor={editor}
+                    tippyOptions={{ duration: 100 }}
                     shouldShow={({ state, editor }) => {
                         return !!editor && !!editor.view && !!editor.view.dom && !state.selection.empty && editor.isEditable;
                     }}
@@ -282,14 +284,14 @@ export const RichEditor: React.FC<RichEditorProps> = ({ content, onChange, edita
                         <Button variant="ghost" size="sm" onClick={setLink}><LinkIcon size={14} /></Button>
                     </div>
                 </BubbleMenu>
-            )}
+            )} */}
 
             <EditorContent editor={editor} />
 
             {editable && (
                 <div className="px-4 py-2 border-t border-white/5 bg-black/40 flex justify-between items-center text-[10px] text-text-muted font-mono uppercase tracking-widest">
-                    <div>{editor.storage.characterCount.words()} words / {editor.storage.characterCount.characters()} characters</div>
-                    <div>Rich Editor v3.0</div>
+                    <div>{editor.storage.characterCount.words()} palavras / {editor.storage.characterCount.characters()} caracteres</div>
+                    <div>Portal DPE - Editor v3.0</div>
                 </div>
             )}
         </div>

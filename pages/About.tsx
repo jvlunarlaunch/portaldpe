@@ -1,20 +1,17 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Code2, Cpu, Globe, Layers, Zap, Github, Twitter, Mail, ArrowUpRight, History } from 'lucide-react';
+import { Shield, Flag, Users, Newspaper, Zap, Check, Heart, History, TrendingUp } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { Button } from '../components/ui/Button';
-import { useTranslation } from 'react-i18next'; // Added import
+import { MembershipModal } from '../components/ui/MembershipModal';
 
 export const About: React.FC = () => {
-  const { t } = useTranslation(); // Hook
-
+  const [isMembershipOpen, setIsMembershipOpen] = React.useState(false);
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
+      transition: { staggerChildren: 0.1 }
     }
   };
 
@@ -23,194 +20,181 @@ export const About: React.FC = () => {
     visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
   };
 
-  const techStack = [
-    { icon: Code2, label: 'Frontend', text: t('about.tech_frontend') },
-    { icon: Layers, label: 'Styling', text: t('about.tech_styling') },
-    { icon: Cpu, label: 'Backend', text: t('about.tech_backend') },
-    { icon: Globe, label: 'Deployment', text: t('about.tech_deploy') },
+  const pillars = [
+    { icon: Shield, label: 'Valores', text: 'Defesa da família, da propriedade privada e da liberdade individual.' },
+    { icon: Flag, label: 'Patriotismo', text: 'Amor por Pernambuco e pelo Brasil acima de tudo.' },
+    { icon: Newspaper, label: 'Verdade', text: 'Informação sem as amarras do politicamente correto.' },
+    { icon: Users, label: 'Comunidade', text: 'Unindo forças para um Pernambuco mais próspero e livre.' },
   ];
 
-  const timeline = [
+  const milestones = [
     {
-      year: '2024',
-      title: t('about.timeline_2024_title'),
-      company: t('about.timeline_2024_company'),
-      desc: t('about.timeline_2024_desc')
-    },
-    {
-      year: '2022',
-      title: t('about.timeline_2022_title'),
-      company: t('about.timeline_2022_company'),
-      desc: t('about.timeline_2022_desc')
-    },
-    {
-      year: '2019',
-      title: t('about.timeline_2019_title'),
-      company: t('about.timeline_2019_company'),
-      desc: t('about.timeline_2019_desc')
+      year: '2014',
+      title: 'A Gênese Conservadora',
+      desc: 'O despertar do movimento em Pernambuco sob a influência de Olavo de Carvalho, rompendo o silêncio ideológico.'
     },
     {
       year: '2016',
-      title: 'Hello World',
-      company: t('about.timeline_2016_company'),
-      desc: t('about.timeline_2016_desc')
+      title: 'O Poder das Ruas',
+      desc: 'Protagonismo no impeachment e nas históricas recepções a Jair Bolsonaro no Nordeste, mudando o eixo político.'
+    },
+    {
+      year: '2018',
+      title: 'A Consolidação',
+      desc: 'Braço forte na linha de frente da campanha presidencial, defendendo pautas conservadoras de base.'
+    },
+    {
+      year: '2020',
+      title: 'Combate ao PSB',
+      desc: 'Oposição firme ao PSB em Pernambuco, combatendo o estatismo e defendendo as liberdades individuais.'
+    },
+    {
+      year: '2022',
+      title: 'Espaço na Política',
+      desc: 'Consolidação como motor de mobilização em eleições decisivas, reafirmando os valores da direita cristã.'
     },
   ];
 
   return (
-    <div className="w-full pt-32 pb-20 px-4 md:px-8 max-w-5xl mx-auto">
+    <div className="w-full bg-[#fbfbfd]">
       <Helmet>
-        <title>{t('about.hero_title_1')} {t('about.hero_title_2')} | LuxTech</title>
-        <meta name="description" content={t('about.hero_desc')} />
+        <title>Quem Somos | Portal DPE</title>
+        <meta name="description" content="Conheça a missão e os valores do maior portal conservador de Pernambuco: Portal DPE." />
       </Helmet>
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="space-y-24"
-      >
-        {/* Profile / Hero Section */}
-        <section className="grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
-          <motion.div variants={itemVariants} className="md:col-span-5 relative group">
-            <div className="absolute inset-0 bg-gradient-to-tr from-primary to-secondary rounded-3xl blur-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-700" />
-            <div className="relative aspect-square w-full overflow-hidden rounded-3xl border border-white/10 bg-surface">
-              <img
-                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?fit=crop&w=800&q=80"
-                alt="Profile"
-                className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-60" />
-            </div>
-          </motion.div>
 
-          <motion.div variants={itemVariants} className="md:col-span-7">
-            <span className="inline-block mb-6 font-mono text-sm text-primary tracking-widest uppercase bg-primary/10 px-3 py-1 rounded border border-primary/20">
-              {t('about.role_label')}
-            </span>
-            <h1 className="font-display text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
-              {t('about.hero_title_1')} <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/40">
-                {t('about.hero_title_2')}
-              </span>
-            </h1>
-            <p className="font-body text-text-muted text-lg leading-relaxed mb-8">
-              {t('about.hero_desc')}
+      {/* Hero Section */}
+      <section className="pt-40 pb-24 px-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-1/3 h-full bg-azure-50/50 -skew-x-12 transform origin-top-right -z-10"></div>
+        <div className="max-w-7xl mx-auto flex flex-col items-center text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-20 h-20 bg-azure-600 rounded-2xl shadow-xl shadow-azure-600/20 flex items-center justify-center text-white font-bold text-2xl mb-8"
+          >
+            DPE
+          </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-4xl md:text-6xl lg:text-7xl font-bold text-slate-900 mb-6 leading-tight max-w-4xl"
+          >
+            Nossa missão é levar a <span className="text-azure-600 underline decoration-azure-100 underline-offset-8">vontade do povo</span> à frente.
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-lg md:text-xl text-slate-500 max-w-2xl leading-relaxed mb-10"
+          >
+            O Portal DPE nasceu da necessidade de uma informação livre,
+            comprometido com os valores que fundaram nossa nação.
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="flex gap-4"
+          >
+            <Button size="lg">Seja Membro</Button>
+            <Button variant="outline" size="lg">Nossas Notícias</Button>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Pillars Section */}
+      <section className="py-24 bg-white border-y border-slate-100 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+            {pillars.map((pillar, idx) => (
+              <motion.div
+                key={idx}
+                whileHover={{ y: -5 }}
+                className="flex flex-col items-center md:items-start text-center md:text-left"
+              >
+                <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-azure-600 mb-6 group-hover:bg-azure-600 group-hover:text-white transition-colors">
+                  <pillar.icon size={24} />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-3">{pillar.label}</h3>
+                <p className="text-slate-500 leading-relaxed text-sm">{pillar.text}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Manifesto / Long Text */}
+      <section className="py-24 px-6 max-w-4xl mx-auto">
+        <div className="flex flex-col gap-12 text-center md:text-left">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Por que existimos?</h2>
+          <div className="prose prose-lg prose-slate max-w-none text-slate-600 font-light leading-loose">
+            <p className="mb-8">
+              Fundado em 2014 e inspirado pela filosofia de Olavo de Carvalho, o Movimento Direita Pernambuco nasceu como o primeiro grupo de militância conservadora do estado. Surgimos para romper a hegemonia de esquerda, resgatando o protagonismo da direita no cenário político e social brasileiro.
             </p>
-
-            <div className="flex flex-wrap gap-4">
-              <Button className="gap-2">
-                <Mail size={16} /> {t('about.contact_me')}
-              </Button>
-              <Button variant="secondary" className="gap-2">
-                <Github size={16} /> GitHub
-              </Button>
-              <Button variant="ghost" className="gap-2">
-                <Twitter size={16} /> @luxtech_dev
-              </Button>
+            <p>
+              Sob a liderança de Mateus Henrique, fomos pioneiros nas grandes mobilizações pelo impeachment e nas históricas recepções a Jair Bolsonaro. Nossa base é formada por cidadãos que dedicam sua atuação à defesa da civilização ocidental, da ordem e dos valores inegociáveis.
+            </p>
+            <div className="my-12 p-8 bg-slate-50 rounded-3xl border-l-4 border-azure-600 flex gap-6">
+              <Heart className="text-azure-600 shrink-0 mt-1" />
+              <p className="text-slate-700 italic font-medium m-0">
+                "A cultura precede a política e a tradição é a democracia dos mortos."
+              </p>
             </div>
-          </motion.div>
-        </section>
-
-        {/* Stats Grid */}
-        <motion.section variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { label: t('about.stat_years'), value: '08+' },
-            { label: t('about.stat_projects'), value: '42' },
-            { label: t('about.stat_contributions'), value: '1.2k' },
-            { label: t('about.stat_coffee'), value: '∞' },
-          ].map((stat, i) => (
-            <div key={i} className="p-6 rounded-2xl border border-white/5 bg-white/5 backdrop-blur-sm text-center hover:bg-white/10 transition-colors">
-              <div className="font-display text-3xl font-bold text-white mb-1">{stat.value}</div>
-              <div className="font-mono text-xs text-text-muted uppercase tracking-wider">{stat.label}</div>
-            </div>
-          ))}
-        </motion.section>
-
-        {/* Timeline / Journey Section */}
-        <section>
-          <motion.div variants={itemVariants} className="mb-12 flex items-center gap-3 border-b border-white/10 pb-4">
-            <History className="text-primary" size={24} />
-            <h2 className="font-display text-3xl font-bold text-white">{t('about.journey_title')}</h2>
-          </motion.div>
-
-          <div className="relative border-l border-white/10 ml-3 md:ml-6 space-y-12 pb-4">
-            {timeline.map((item, index) => (
-              <motion.div
-                key={index}
-                variants={itemVariants}
-                className="relative pl-8 md:pl-12 group"
-              >
-                {/* Timeline Dot */}
-                <div className="absolute -left-[5px] top-2 h-2.5 w-2.5 rounded-full bg-black border border-primary shadow-[0_0_12px_rgba(124,58,237,0.6)] group-hover:scale-125 transition-transform duration-300" />
-
-                {/* Content */}
-                <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4 mb-2">
-                  <span className="font-mono text-primary text-sm font-bold tracking-wider">{item.year}</span>
-                  <h3 className="font-display text-xl font-bold text-white group-hover:text-primary transition-colors duration-300">
-                    {item.title}
-                  </h3>
-                  <span className="font-mono text-xs text-text-muted bg-white/5 px-2 py-0.5 rounded border border-white/5">
-                    {item.company}
-                  </span>
-                </div>
-                <p className="font-body text-text-muted text-sm leading-relaxed max-w-2xl border-l-2 border-transparent pl-0 group-hover:border-white/5 group-hover:pl-4 transition-all duration-300">
-                  {item.desc}
-                </p>
-              </motion.div>
-            ))}
-
-            {/* Fade out bottom of line */}
-            <div className="absolute bottom-0 left-[-1px] h-20 w-0.5 bg-gradient-to-b from-white/10 to-transparent" />
+            <p>
+              Defendemos a vida, a família, o direito à autodefesa e a liberdade econômica com mínima interferência estatal. Somos a resistência contra propostas revolucionárias que ameaçam o nosso tecido social.
+            </p>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* The Arsenal (Tech Stack) */}
-        <section>
-          <motion.div variants={itemVariants} className="mb-10 flex items-end justify-between border-b border-white/10 pb-4">
-            <h2 className="font-display text-3xl font-bold text-white">{t('about.arsenal_title')}</h2>
-            <span className="font-mono text-xs text-text-muted">CURRENT_STACK_V2.0</span>
-          </motion.div>
+      {/* Timeline / Journey */}
+      <section className="py-24 bg-slate-900 text-white px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between mb-16 gap-6">
+            <div>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Nossa Jornada</h2>
+              <p className="text-slate-400">Marcos históricos do movimento.</p>
+            </div>
+            <TrendingUp className="text-azure-500 w-12 h-12 opacity-50" />
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {techStack.map((tech, index) => (
-              <motion.div
-                key={index}
-                variants={itemVariants}
-                className="group relative overflow-hidden rounded-2xl border border-white/5 bg-surface p-8 transition-all hover:border-primary/30"
-              >
-                <div className="absolute right-0 top-0 p-3 opacity-10 group-hover:opacity-100 transition-opacity">
-                  <ArrowUpRight size={20} className="text-primary" />
-                </div>
-                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/5 text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                  <tech.icon size={24} />
-                </div>
-                <h3 className="mb-2 font-display text-xl font-bold text-white">{tech.label}</h3>
-                <p className="font-mono text-sm text-text-muted">{tech.text}</p>
-              </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-8">
+            {milestones.map((m, idx) => (
+              <div key={idx} className="relative pt-8 border-t border-slate-800">
+                <div className="absolute top-0 -translate-y-1/2 w-4 h-4 bg-azure-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)]"></div>
+                <span className="text-azure-400 font-bold font-mono text-sm mb-2 block">{m.year}</span>
+                <h4 className="text-xl font-bold mb-3">{m.title}</h4>
+                <p className="text-slate-400 text-sm leading-relaxed">{m.desc}</p>
+              </div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Manifesto */}
-        <motion.section variants={itemVariants} className="relative rounded-3xl border border-white/10 bg-gradient-to-b from-surface to-black p-8 md:p-12 overflow-hidden">
-          <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-secondary/10 rounded-full blur-[80px] pointer-events-none" />
-
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-6 text-secondary">
-              <Zap size={20} />
-              <span className="font-mono text-sm tracking-widest uppercase">{t('about.philosophy_label')}</span>
-            </div>
-            <blockquote className="font-display text-2xl md:text-4xl font-bold text-white leading-tight mb-8 max-w-3xl">
-              "{t('about.philosophy_quote')}"
-            </blockquote>
-            <div className="flex items-center gap-4">
-              <div className="h-px flex-1 bg-white/10" />
-              <span className="font-mono text-xs text-text-muted">END_OF_FILE</span>
-            </div>
+      {/* CTA Final */}
+      <section className="py-24 px-6 text-center">
+        <div className="max-w-4xl mx-auto bg-gradient-to-br from-azure-600 to-indigo-700 rounded-[3rem] p-12 md:p-20 text-white shadow-2xl shadow-azure-900/40 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2"></div>
+          <h2 className="text-3xl md:text-5xl font-bold mb-8 relative z-10">Faça parte desta história.</h2>
+          <p className="text-azure-100 text-lg md:text-xl mb-12 relative z-10 max-w-xl mx-auto">
+            Sua ajuda é fundamental para mantermos nossa independência e continuarmos levando a verdade a todos.
+          </p>
+          <div className="flex justify-center relative z-10">
+            <Button
+              variant="secondary"
+              size="lg"
+              onClick={() => setIsMembershipOpen(true)}
+            >
+              Seja Membro
+            </Button>
           </div>
-        </motion.section>
+        </div>
+      </section>
 
-      </motion.div>
+      <MembershipModal
+        isOpen={isMembershipOpen}
+        onClose={() => setIsMembershipOpen(false)}
+      />
+
     </div>
   );
 };

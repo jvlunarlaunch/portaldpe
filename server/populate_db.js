@@ -11,7 +11,7 @@ const articles = [
     title_pt: "O Fantasma na Máquina: Ética da IA Generativa",
     excerpt: "Exploring the blurred lines between creation and curation in the age of large language models.",
     excerpt_pt: "Explorando as linhas tênues entre criação e curadoria na era dos grandes modelos de linguagem.",
-    category: "ENGINEERING",
+    category: "Gestão de Projetos",
     read_time: "7 min read",
     image_url: "https://picsum.photos/seed/ghost/800/600",
     featured: 1,
@@ -37,7 +37,7 @@ const articles = [
     title_pt: "Otimizando o Caminho Crítico de Renderização em 2026",
     excerpt: "Web performance techniques have evolved. Learn how to achieve sub-100ms FCP on modern networks.",
     excerpt_pt: "As técnicas de desempenho web evoluíram. Aprenda como atingir FCP abaixo de 100ms em redes modernas.",
-    category: "REACT",
+    category: "Growth",
     read_time: "10 min read",
     image_url: "https://picsum.photos/seed/perf/800/600",
     featured: 1,
@@ -65,7 +65,7 @@ const articles = [
     title_pt: "Arquitetura Zero Trust: Uma Mudança de Paradigma",
     excerpt: "Why 'verify, never trust' is the only viable security posture for distributed systems.",
     excerpt_pt: "Por que 'verifique, nunca confie' é a única postura de segurança viável para sistemas distribuídos.",
-    category: "BACKEND",
+    category: "Negócios Digitais",
     read_time: "5 min read",
     image_url: "https://picsum.photos/seed/security/800/600",
     featured: 0,
@@ -85,7 +85,7 @@ const articles = [
     title_pt: "React Native vs Flutter: O Veredito Final",
     excerpt: "A comprehensive comparison of the two giants in cross-platform mobile development.",
     excerpt_pt: "Uma comparação abrangente dos dois gigantes no desenvolvimento móvel multiplataforma.",
-    category: "ENGINEERING",
+    category: "Negócios Digitais",
     read_time: "8 min read",
     image_url: "https://picsum.photos/seed/mobile/800/600",
     featured: 0,
@@ -105,7 +105,7 @@ const articles = [
     title_pt: "Micro-interações: O Segredo para o Engajamento",
     excerpt: "How subtle animations and feedback loops create emotional connections with users.",
     excerpt_pt: "Como animações sutis e ciclos de feedback criam conexões emocionais com os usuários.",
-    category: "UX",
+    category: "Copywriting",
     read_time: "4 min read",
     image_url: "https://picsum.photos/seed/ux/800/600",
     featured: 1,
@@ -145,7 +145,7 @@ const articles = [
     title_pt: "Por que TypeScript Ganhou a Web",
     excerpt: "Tracing the history of type systems in JavaScript and why TS emerged victorious.",
     excerpt_pt: "Traçando a história dos sistemas de tipos no JavaScript e por que o TS saiu vitorioso.",
-    category: "ENGINEERING",
+    category: "Vendas",
     read_time: "12 min read",
     image_url: "https://picsum.photos/seed/ts/800/600",
     featured: 0,
@@ -165,7 +165,7 @@ const articles = [
     title_pt: "Glassmorphism: Um Mergulho Profundo",
     excerpt: "Technical breakdown of performance implications when using heavy blur effects.",
     excerpt_pt: "Análise técnica das implicações de desempenho ao usar efeitos de desfoque pesados.",
-    category: "DESIGN",
+    category: "Growth",
     read_time: "5 min read",
     image_url: "https://picsum.photos/seed/glass/800/600",
     featured: 0,
@@ -183,11 +183,11 @@ const articles = [
 ];
 
 const categoriesMap = {
-  'ENGINEERING': 1,
-  'DESIGN': 2,
-  'BACKEND': 3,
-  'REACT': 4,
-  'UX': 5
+  'Gestão de Projetos': 1,
+  'Copywriting': 2,
+  'Growth': 3,
+  'Negócios Digitais': 4,
+  'Vendas': 5
 };
 
 async function seed() {

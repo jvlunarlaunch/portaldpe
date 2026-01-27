@@ -64,7 +64,7 @@ function initDatabase() {
                 console.log("Seeding initial author...");
                 const hashedPassword = bcrypt.hashSync('admin123', 10);
                 const sql = `INSERT INTO authors (name, username, password, bio, avatar_url) VALUES (?, ?, ?, ?, ?)`;
-                db.run(sql, ['Admin User', 'admin@luxtech.io', hashedPassword, 'System Administrator', 'https://picsum.photos/seed/admin/200/200']);
+                db.run(sql, ['João Victor', 'joaovictor@lunarlaunch.com.br', hashedPassword, 'Founder Lunar Launch.', 'https://ui-avatars.com/api/?name=Joao+Victor&background=4F6AFF&color=fff']);
             }
         });
 
@@ -72,7 +72,7 @@ function initDatabase() {
             if (err) return console.error(err);
             if (row.count === 0) {
                 console.log("Seeding initial data...");
-                const categories = ['ENGINEERING', 'DESIGN', 'BACKEND', 'REACT', 'UX'];
+                const categories = ['Gestão de Projetos', 'Copywriting', 'Growth', 'Negócios Digitais', 'Vendas'];
                 categories.forEach(cat => {
                     db.run("INSERT INTO categories (name, slug) VALUES (?, ?)", [cat, cat.toLowerCase()]);
                 });

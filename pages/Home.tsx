@@ -1,21 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { useTranslation } from 'react-i18next';
-import { ArrowDown, Filter, Search, X, ChevronLeft, ChevronRight, ArrowUpRight, Loader2 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Search, X, Loader2, MessageSquare } from 'lucide-react';
 import { ArticleCard } from '../components/ui/ArticleCard';
-import { Button } from '../components/ui/Button';
-import { fetchArticles, fetchArticleBySlug } from '../api';
+import { Hero } from '../components/ui/Hero';
+import { fetchArticles } from '../api';
 import { Article } from '../types';
-import { useLoading } from '../context/LoadingContext';
+import { MembershipModal } from '../components/ui/MembershipModal';
 
 export const Home: React.FC = () => {
-  const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
-  const { setIsNavigating } = useLoading();
-  const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isMembershipOpen, setIsMembershipOpen] = useState(false);
 
   // Data State
   const [articles, setArticles] = useState<Article[]>([]);
@@ -35,308 +31,200 @@ export const Home: React.FC = () => {
     loadData();
   }, []);
 
-  // Extract unique categories and add 'ALL'
-  const CATEGORIES = ['ALL', ...Array.from(new Set(articles.map(a => a.category)))];
-
-  // Carousel State
-  const mainArticles = articles.filter(a => a.main);
-  const [currentHeroIndex, setCurrentHeroIndex] = useState(0);
-
-  // Auto-rotate Carousel
-  useEffect(() => {
-    if (mainArticles.length <= 1) return;
-    const interval = setInterval(() => {
-      setCurrentHeroIndex((prev) => (prev + 1) % mainArticles.length);
-    }, 8000); // 8 seconds per slide
-    return () => clearInterval(interval);
-  }, [mainArticles.length]);
-
-  const nextSlide = () => {
-    setCurrentHeroIndex((prev) => (prev + 1) % mainArticles.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentHeroIndex((prev) => (prev - 1 + mainArticles.length) % mainArticles.length);
-  };
+  // Extract unique categories and add 'Todos'
+  const categoriesList = ['Todos', ...Array.from(new Set(articles.map(a => a.category)))];
 
   const filteredArticles = articles.filter(article => {
-    const matchesCategory = selectedCategory === 'ALL' || article.category === selectedCategory;
-
-    const displayTitle = (i18n.language === 'pt' && article.title_pt) ? article.title_pt : article.title;
-    const displayExcerpt = (i18n.language === 'pt' && article.excerpt_pt) ? article.excerpt_pt : article.excerpt;
+    const matchesCategory = selectedCategory === 'Todos' || article.category === selectedCategory;
 
     const matchesSearch =
-      displayTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      displayExcerpt.toLowerCase().includes(searchQuery.toLowerCase());
+      article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      article.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
 
     return matchesCategory && matchesSearch;
   });
 
-  const handleHeroClick = async (e: React.MouseEvent, slug: string) => {
-    e.preventDefault();
-    setIsNavigating(true);
-    try {
-      const startTime = Date.now();
-      const fetchedArticle = await fetchArticleBySlug(slug);
-      const endTime = Date.now();
+  // Featured articles for Hero
+  const featuredArticles = articles.filter(a => a.main).slice(0, 3);
+  // If no main articles, just take the latest 3
+  const heroArticles = featuredArticles.length > 0 ? featuredArticles : articles.slice(0, 3);
 
-      if (endTime - startTime < 400) {
-        await new Promise(resolve => setTimeout(resolve, 400 - (endTime - startTime)));
-      }
+  // Feed articles (excluding hero articles if on homepage/All)
+  const feedArticles = selectedCategory === 'Todos' && !searchQuery
+    ? filteredArticles.filter(a => !heroArticles.find(h => h.id === a.id))
+    : filteredArticles;
 
-      navigate(`/article/${slug}`, {
-        state: { preloadedArticle: fetchedArticle }
-      });
-    } catch (error) {
-      console.error("Failed to pre-load article", error);
-      navigate(`/article/${slug}`);
-    } finally {
-      setIsNavigating(false);
-    }
-  };
+  const opinionArticles = articles.filter(a => a.category?.toLowerCase() === 'opinião' || a.category?.toLowerCase() === 'coluna').slice(0, 5);
+  const trendingArticles = articles.slice(0, 5);
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center pt-20">
-        <Loader2 className="animate-spin text-primary" size={40} />
+      <div className="min-h-screen flex items-center justify-center pt-20 bg-[#fbfbfd]">
+        <Loader2 className="animate-spin text-azure-600" size={40} />
       </div>
     );
   }
 
-  // Get current main article data based on language
-  const currentHeroArticle = mainArticles[currentHeroIndex];
-  const heroTitle = currentHeroArticle ? ((i18n.language === 'pt' && currentHeroArticle.title_pt) ? currentHeroArticle.title_pt : currentHeroArticle.title) : '';
-  const heroExcerpt = currentHeroArticle ? ((i18n.language === 'pt' && currentHeroArticle.excerpt_pt) ? currentHeroArticle.excerpt_pt : currentHeroArticle.excerpt) : '';
-
-
   return (
-    <div className="relative w-full pt-32 pb-20 px-4 md:px-8 max-w-7xl mx-auto">
+    <div className="min-h-screen bg-[#fbfbfd]">
       <Helmet>
-        <title>LuxTech | High-End Tech Blog</title>
-        <meta name="description" content="Explorations in high-performance rendering, interface design, and the philosophical implications of software engineering." />
-        <meta property="og:title" content="LuxTech | High-End Tech Blog" />
-        <meta property="og:description" content="Explorations in high-performance rendering, interface design, and the philosophical implications of software engineering." />
-        <meta property="og:type" content="website" />
+        <title>Portal DPE | Verdade e Liberdade</title>
+        <meta name="description" content="O maior portal conservador de Pernambuco. Compromisso com a verdade e os valores tradicionais do Portal DPE." />
       </Helmet>
 
-      {/* 
-        HERO SECTION - SPLIT LAYOUT 
-        Left: Branding (H1/H2)
-        Right: Carousel (Featured Articles)
-      */}
-      <section className="mb-24 flex flex-col lg:grid lg:grid-cols-12 gap-12 items-center min-h-[65vh] relative">
+      <MembershipModal isOpen={isMembershipOpen} onClose={() => setIsMembershipOpen(false)} />
 
-        {/* LEFT COLUMN: Branding & Manifesto */}
-        <motion.div
-          className="lg:col-span-7 flex flex-col items-start z-10 relative"
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, ease: "easeOut" }}
-        >
-          <span className="inline-block mb-6 font-mono text-sm text-primary tracking-widest uppercase bg-primary/10 px-3 py-1 rounded border border-primary/20">
-            // Digital Garden v1.0
-          </span>
-          <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight text-white mb-6 leading-[0.95]">
-            {t('home.hero_title').split(' ').slice(0, 1)} <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/40">
-              {t('home.hero_title').split(' ').slice(1).join(' ')}
-            </span>
-          </h1>
-          <h2 className="max-w-xl text-lg md:text-xl text-text-muted font-body leading-relaxed mb-8 border-l-2 border-white/10 pl-6">
-            {t('home.hero_subtitle')}
-          </h2>
+      <main className="w-full">
+        {/* Hero Section - Only on main view with no filter/search */}
+        {selectedCategory === 'Todos' && !searchQuery && (
+          <Hero
+            articles={heroArticles}
+            onOpenMembership={() => setIsMembershipOpen(true)}
+          />
+        )}
 
-          <div className="hidden lg:block">
-            <div className="flex items-center gap-4 text-text-muted/50 font-mono text-xs">
-              <div className="h-[1px] w-12 bg-white/20"></div>
-              SCROLL_TO_TRANSMISSIONS
-              <ArrowDown size={14} className="animate-bounce" />
+        <section className={`max-w-7xl mx-auto px-4 md:px-6 pb-24 ${selectedCategory !== 'Todos' || searchQuery ? "pt-32 md:pt-40" : ""}`}>
+
+          {/* Category Nav & Search */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 md:mb-12 border-b border-slate-200 pb-6">
+            <div className="flex overflow-x-auto no-scrollbar items-center gap-2">
+              {categoriesList.map(cat => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${selectedCategory === cat
+                    ? 'bg-slate-900 text-white shadow-md'
+                    : 'text-slate-500 hover:text-azure-600 hover:bg-slate-100'
+                    }`}
+                >
+                  {cat}
+                </button>
+              ))}
             </div>
-          </div>
-        </motion.div>
 
-        {/* RIGHT COLUMN: Featured Carousel */}
-        <div className="lg:col-span-5 w-full h-[500px] lg:h-[600px] relative z-20">
-          {mainArticles.length > 0 ? (
-            <div className="relative w-full h-full rounded-3xl overflow-hidden border border-white/10 bg-surface shadow-2xl group">
-              {/* Carousel Slides */}
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={currentHeroIndex}
-                  initial={{ opacity: 0, scale: 1.1 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.8 }}
-                  className="absolute inset-0"
-                >
-                  <img
-                    src={currentHeroArticle.imageUrl}
-                    alt={heroTitle}
-                    className="w-full h-full object-cover opacity-70"
-                  />
-                  {/* Gradient Overlay for Text Readability */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent" />
-                </motion.div>
-              </AnimatePresence>
-
-              {/* Carousel Content (Inside Card) */}
-              <div className="absolute inset-0 p-8 flex flex-col justify-end">
-                <motion.div
-                  key={`content-${currentHeroIndex}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
-                >
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-primary font-mono text-xs tracking-wider uppercase bg-black/50 backdrop-blur-md px-2 py-1 rounded border border-white/10">
-                      {currentHeroArticle.category}
-                    </span>
-                    <span className="text-white/60 font-mono text-xs">
-                      {currentHeroIndex + 1} / {mainArticles.length}
-                    </span>
-                  </div>
-
-                  <div onClick={(e) => handleHeroClick(e, currentHeroArticle.slug)} className="group/link block cursor-pointer">
-                    <h3 className="font-display text-2xl md:text-3xl font-bold text-white leading-tight mb-3 group-hover/link:underline decoration-1 underline-offset-4 transition-all">
-                      {heroTitle}
-                    </h3>
-                  </div>
-
-                  <p className="font-body text-text-muted text-sm line-clamp-2 mb-6">
-                    {heroExcerpt}
-                  </p>
-
-                  {/* Carousel Controls */}
-                  <div className="flex items-center gap-3">
-                    <Button
-                      variant="ghost"
-                      onClick={prevSlide}
-                      className="!p-2 !rounded-full bg-white/5 hover:bg-white/20 border border-white/5"
-                    >
-                      <ChevronLeft size={18} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      onClick={nextSlide}
-                      className="!p-2 !rounded-full bg-white/5 hover:bg-white/20 border border-white/5"
-                    >
-                      <ChevronRight size={18} />
-                    </Button>
-                    <div onClick={(e) => handleHeroClick(e, currentHeroArticle.slug)} className="ml-auto cursor-pointer">
-                      <Button className="!px-4 !py-2 !text-xs gap-2">
-                        {t('home.read_more')} <ArrowUpRight size={14} />
-                      </Button>
-                    </div>
-                  </div>
-                </motion.div>
+            {/* Search Input */}
+            <div className="relative w-full md:w-64">
+              <div className="relative flex items-center bg-white border border-slate-200 rounded-full px-4 py-2 focus-within:border-azure-400 transition-all duration-300 shadow-sm">
+                <Search size={16} className="text-slate-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Buscar notícias..."
+                  className="w-full bg-transparent border-none focus:ring-0 text-sm text-slate-900 placeholder-slate-400 px-3 py-0.5 focus:outline-none"
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery('')} className="text-slate-400 hover:text-slate-600">
+                    <X size={16} />
+                  </button>
+                )}
               </div>
             </div>
-          ) : (
-            // Fallback decorative box if no main articles
-            <div className="w-full h-full rounded-3xl border border-white/10 bg-white/5 flex items-center justify-center">
-              <p className="font-mono text-text-muted text-sm">NO_SIGNAL_FOUND</p>
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Filter & Search Bar (Sticky) */}
-      <section className="mb-12 sticky top-24 z-30 py-4 -mx-4 px-4 bg-background/80 backdrop-blur-xl border-y border-white/5 md:static md:bg-transparent md:border-none md:p-0">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-
-          {/* Categories */}
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-4 order-2 md:order-1 flex-1">
-            <div className="flex items-center gap-2 text-white/50 pr-4 border-r border-white/10 hidden md:flex shrink-0">
-              <Filter size={14} />
-              <span className="font-mono text-xs tracking-wider">{t('home.filter')}</span>
-            </div>
-
-            {CATEGORIES.map((category) => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`
-                  relative px-4 py-2 md:px-5 rounded-full font-mono text-xs tracking-wider transition-all duration-300 whitespace-nowrap border shrink-0
-                  ${selectedCategory === category
-                    ? 'bg-white text-black border-white shadow-[0_0_20px_-5px_rgba(255,255,255,0.5)] scale-105 z-10'
-                    : 'bg-white/5 text-text-muted border-white/5 hover:border-white/20 hover:text-white hover:bg-white/10'
-                  }
-                `}
-              >
-                {category}
-              </button>
-            ))}
           </div>
 
-          {/* Search Input */}
-          <div className="relative w-full md:w-64 lg:w-80 group order-1 md:order-2 shrink-0">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary/20 to-secondary/20 opacity-0 group-focus-within:opacity-100 blur-md transition-opacity duration-500" />
-            <div className="relative flex items-center bg-white/5 border border-white/10 rounded-full px-4 py-2 focus-within:bg-black/80 focus-within:border-white/20 transition-all duration-300">
-              <Search size={14} className="text-text-muted group-focus-within:text-primary transition-colors" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t('home.search_placeholder')}
-                className="w-full bg-transparent border-none focus:ring-0 text-sm font-mono text-white placeholder-white/20 px-3 py-0.5 focus:outline-none"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="text-text-muted hover:text-white transition-colors"
-                >
-                  <X size={14} />
-                </button>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+
+            {/* Main Content Column */}
+            <div className="lg:col-span-8">
+              <div className="flex items-center justify-between mb-8">
+                <h2 className="text-xl md:text-2xl font-bold text-slate-900">
+                  {searchQuery ? "Resultados da busca" : (selectedCategory === "Todos" ? "Últimas Notícias" : selectedCategory)}
+                </h2>
+                <span className="text-xs text-slate-400 uppercase tracking-wider font-medium hidden sm:block">
+                  {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {feedArticles.map((article) => (
+                  <ArticleCard
+                    key={article.id}
+                    article={article}
+                    variant="standard"
+                  />
+                ))}
+              </div>
+
+              {feedArticles.length === 0 && (
+                <div className="py-20 text-center text-slate-400 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                  Sem notícias nesta categoria no momento.
+                </div>
+              )}
+
+              {feedArticles.length > 0 && (
+                <div className="mt-12 text-center">
+                  <button className="px-8 py-3 bg-white border border-slate-200 text-slate-600 font-bold rounded-full hover:bg-slate-50 hover:border-slate-300 transition-all text-sm shadow-sm">
+                    Carregar Mais Notícias
+                  </button>
+                </div>
               )}
             </div>
+
+            {/* Sidebar Column */}
+            <aside className="lg:col-span-4 space-y-12">
+
+              {/* Opinion Widget */}
+              <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                <h3 className="font-bold text-lg mb-6 flex items-center gap-2 text-slate-900">
+                  <MessageSquare className="w-5 h-5 text-azure-600" />
+                  Opinião & Análise
+                </h3>
+                <div className="flex flex-col gap-1">
+                  {opinionArticles.length > 0 ? opinionArticles.map(article => (
+                    <ArticleCard
+                      key={article.id}
+                      article={article}
+                      variant="compact"
+                      className="py-3 border-b border-slate-50 last:border-0 hover:bg-slate-50 rounded-xl px-2 -mx-2 transition-colors"
+                    />
+                  )) : (
+                    <p className="text-sm text-slate-400">Nenhum artigo de opinião recente.</p>
+                  )}
+                </div>
+                <button className="w-full mt-4 text-center text-xs font-bold text-azure-600 hover:text-azure-700 py-2 uppercase tracking-wider">
+                  Ver todos os colunistas
+                </button>
+              </div>
+
+              {/* Trending Widget */}
+              <div>
+                <h3 className="font-bold text-lg mb-6 text-slate-900">Mais Lidas</h3>
+                <div className="flex flex-col">
+                  {trendingArticles.map((article, index) => (
+                    <Link to={`/article/${article.slug}`} key={article.id} className="flex gap-4 items-center py-4 border-b border-slate-100 group cursor-pointer hover:bg-slate-50 transition-colors px-2 -mx-2 rounded-lg">
+                      <span className="text-2xl md:text-3xl font-bold text-slate-200 group-hover:text-azure-300 transition-colors font-serif italic shrink-0 w-8">
+                        {index + 1}
+                      </span>
+                      <div className="min-w-0">
+                        <span className="text-[10px] font-bold text-azure-600 uppercase mb-1 block">{article.category}</span>
+                        <h4 className="text-sm font-semibold text-slate-800 group-hover:text-azure-600 transition-colors line-clamp-2 leading-snug">
+                          {article.title}
+                        </h4>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* Join CTA */}
+              <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-8 text-white text-center relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-azure-500 rounded-full blur-[80px] opacity-20 pointer-events-none"></div>
+                <h3 className="font-bold text-xl mb-3 relative z-10">Faça Parte</h3>
+                <p className="text-sm text-slate-300 mb-6 relative z-10 leading-relaxed">
+                  Ajude a construir o maior portal conservador de Pernambuco.
+                </p>
+                <button
+                  onClick={() => setIsMembershipOpen(true)}
+                  className="w-full py-4 bg-azure-600 hover:bg-azure-500 rounded-full font-bold text-sm transition-all shadow-lg shadow-azure-900/50 relative z-10 active:scale-95"
+                >
+                  Quero Ser Membro
+                </button>
+              </div>
+
+            </aside>
           </div>
-        </div>
-      </section>
-
-      {/* Bento Grid */}
-      <section>
-        <div className="flex items-end justify-between mb-8 border-b border-white/10 pb-4">
-          <h2 className="font-display text-2xl md:text-3xl font-bold text-white">
-            {searchQuery
-              ? `${t('home.search_results')}: "${searchQuery}"`
-              : (selectedCategory === 'ALL' ? t('home.latest_transmissions') : `${selectedCategory} ${t('home.archives')}`)
-            }
-          </h2>
-          <span className="font-mono text-xs text-text-muted">
-            {t('home.found_nodes', { count: filteredArticles.length })}
-          </span>
-        </div>
-
-        <motion.div
-          layout
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          <AnimatePresence mode='popLayout'>
-            {filteredArticles.map((article, index) => {
-              // Bento Grid Logic
-              const isSearching = !!searchQuery;
-              const isFeatured = index === 0 && !isSearching;
-              const spanClass = isFeatured ? "md:col-span-2 lg:col-span-2" : "col-span-1";
-
-              return (
-                <ArticleCard
-                  key={article.id}
-                  article={article}
-                  className={spanClass}
-                />
-              );
-            })}
-          </AnimatePresence>
-
-          {filteredArticles.length === 0 && (
-            <div className="col-span-full py-20 flex flex-col items-center justify-center border border-dashed border-white/10 rounded-3xl bg-white/5">
-              <Search size={48} className="text-white/10 mb-4" />
-              <p className="font-mono text-text-muted text-lg">{t('home.no_results')}</p>
-              <p className="text-sm text-text-muted/50 mt-2">{t('home.adjust_filters')}</p>
-            </div>
-          )}
-        </motion.div>
-      </section>
+        </section>
+      </main>
     </div>
   );
 };

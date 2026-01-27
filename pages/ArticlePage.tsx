@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Helmet } from 'react-helmet-async';
-import { useTranslation } from 'react-i18next'; // Added import
-import { ArrowLeft, Clock, Calendar, Tag, Share2, Bookmark, Loader2, Copy, Check } from 'lucide-react';
+import { ArrowLeft, Clock, Calendar, Tag, Share2, Check, Loader2 } from 'lucide-react';
 import { fetchArticleBySlug, fetchRelatedArticles } from '../api';
 import { Article } from '../types';
 import { Button } from '../components/ui/Button';
 import { useLoading } from '../context/LoadingContext';
+import { ArticleCard } from '../components/ui/ArticleCard';
 
 export const ArticlePage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -18,31 +18,6 @@ export const ArticlePage: React.FC = () => {
   const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(!location.state?.preloadedArticle);
   const [copied, setCopied] = useState(false);
-  const { t, i18n } = useTranslation();
-
-  const handleRelatedClick = async (e: React.MouseEvent, relatedSlug: string) => {
-    e.preventDefault();
-    setIsNavigating(true);
-    try {
-      const startTime = Date.now();
-      const fetchedArticle = await fetchArticleBySlug(relatedSlug);
-      const endTime = Date.now();
-
-      if (endTime - startTime < 400) {
-        await new Promise(resolve => setTimeout(resolve, 400 - (endTime - startTime)));
-      }
-
-      setArticle(fetchedArticle); // Update locally for faster feel
-      navigate(`/article/${relatedSlug}`, {
-        state: { preloadedArticle: fetchedArticle }
-      });
-    } catch (error) {
-      console.error("Failed to pre-load related article", error);
-      navigate(`/article/${relatedSlug}`);
-    } finally {
-      setIsNavigating(false);
-    }
-  };
 
   const handleShare = async () => {
     const url = window.location.href;
@@ -65,12 +40,10 @@ export const ArticlePage: React.FC = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      // If we don't have an article or the slug changed and doesn't match the current article
       if (!article || article.slug !== slug) {
         setLoading(true);
-        const targetSlug = slug;
-        if (targetSlug) {
-          const fetchedArticle = await fetchArticleBySlug(targetSlug);
+        if (slug) {
+          const fetchedArticle = await fetchArticleBySlug(slug);
           setArticle(fetchedArticle);
 
           if (fetchedArticle) {
@@ -80,10 +53,8 @@ export const ArticlePage: React.FC = () => {
         }
         setLoading(false);
       } else if (relatedArticles.length === 0 && article) {
-        // We have the article (preloaded) but not the related ones
         const related = await fetchRelatedArticles(article.id);
         setRelatedArticles(related as Article[]);
-        setLoading(false);
       }
       window.scrollTo(0, 0);
     };
@@ -92,205 +63,186 @@ export const ArticlePage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center pt-20">
-        <Loader2 className="animate-spin text-primary" size={40} />
+      <div className="min-h-screen flex items-center justify-center pt-20 bg-white">
+        <Loader2 className="animate-spin text-azure-600" size={40} />
       </div>
     );
   }
 
   if (!article) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center pt-20 text-white">
+      <div className="min-h-screen flex flex-col items-center justify-center pt-20 bg-white px-4 text-center">
         <Helmet>
-          <title>{t('article.article_not_found')} | LuxTech</title>
+          <title>Artigo não encontrado | Portal DPE</title>
           <meta name="robots" content="noindex" />
         </Helmet>
-        <h2 className="text-2xl font-bold mb-4">{t('article.article_not_found')}</h2>
-        <Link to="/"><Button>{t('article.return_base')}</Button></Link>
+        <h2 className="text-2xl font-bold mb-4 text-slate-900">Artigo não encontrado</h2>
+        <Link to="/"><Button>Voltar ao Início</Button></Link>
       </div>
     );
   }
-
-  const displayTitle = (i18n.language === 'pt' && article.title_pt) ? article.title_pt : article.title;
-  const displayExcerpt = (i18n.language === 'pt' && article.excerpt_pt) ? article.excerpt_pt : article.excerpt;
-  const displayContent = (i18n.language === 'pt' && article.content_pt) ? article.content_pt : (article.content || '<p>Content is being generated via neural link...</p>');
-  const displayDate = article.date; // Date could be formatted by locale locally if needed
-
   return (
-    <article className="relative min-h-screen w-full pt-32 pb-20 px-4 md:px-8">
+    <article className="min-h-screen w-full bg-white pt-32 md:pt-40 pb-24">
       <Helmet>
-        <title>{displayTitle} | LuxTech</title>
-        <meta name="description" content={displayExcerpt} />
-        <meta property="og:title" content={displayTitle} />
-        <meta property="og:description" content={displayExcerpt} />
+        <title>{article.title} | Portal DPE</title>
+        <meta name="description" content={article.excerpt} />
+        <meta property="og:title" content={article.title} />
+        <meta property="og:description" content={article.excerpt} />
         {article.imageUrl && <meta property="og:image" content={article.imageUrl} />}
         <meta property="og:type" content="article" />
       </Helmet>
 
-      {/* Background Glow specifically for article */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-3xl h-[500px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
-
-      <div className="relative mx-auto max-w-4xl">
-        {/* Navigation */}
-        <div className="mb-12">
+      <div className="max-w-3xl mx-auto px-6">
+        {/* Breadcrumb / Back button */}
+        <div className="mb-8 flex justify-center md:justify-start">
           <Link to="/">
-            <Button variant="ghost" className="pl-0 gap-2 text-text-muted hover:text-white">
-              <ArrowLeft size={16} />
-              <span className="font-mono text-xs">{t('article.back_to_intelligence')}</span>
-            </Button>
+            <button className="flex items-center gap-2 text-slate-400 hover:text-azure-600 transition-colors font-medium text-sm group">
+              <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+              Voltar para as notícias
+            </button>
           </Link>
         </div>
 
-        {/* Header */}
-        <header className="mb-16">
+        {/* Header Info */}
+        <div className="text-center md:text-left mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="flex flex-wrap items-center gap-4 mb-6 text-sm"
+            className="inline-flex items-center gap-3 mb-6 justify-center md:justify-start"
           >
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 font-mono text-xs text-primary">
-              <Tag size={12} />
+            <span className="px-3 py-1 rounded-full bg-azure-600 text-white text-xs font-bold tracking-widest uppercase">
               {article.category}
             </span>
-            <span className="flex items-center gap-1.5 font-mono text-text-muted">
-              <Calendar size={12} />
-              {displayDate}
-            </span>
-            <span className="flex items-center gap-1.5 font-mono text-text-muted">
+            <span className="text-slate-500 text-xs font-medium tracking-wide uppercase flex items-center gap-1.5">
               <Clock size={12} />
               {article.readTime}
             </span>
-            <div className="flex flex-col ml-auto sm:ml-0 gap-1 text-[10px] font-mono text-text-muted/70">
-              <span>{t('article.published')}: {displayDate}</span>
-              {article.updatedAt && article.updatedAt !== article.date && (
-                <span className="text-primary/80">{t('article.updated')}: {article.updatedAt}</span>
-              )}
-            </div>
           </motion.div>
 
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-            className="font-display text-4xl sm:text-5xl md:text-6xl font-bold leading-[1.1] text-white tracking-tight mb-8"
+            transition={{ delay: 0.1 }}
+            className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 text-slate-900 leading-tight tracking-tight"
           >
-            {displayTitle}
+            {article.title}
           </motion.h1>
 
-          <motion.p
+          {/* Subtitle / Excerpt */}
+          <p className="text-xl md:text-2xl text-slate-500 font-normal leading-relaxed mb-8">
+            {article.excerpt}
+          </p>
+
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.15 }}
-            className="font-body text-xl md:text-2xl text-text-muted leading-relaxed mb-12 max-w-3xl border-l-2 border-primary/30 pl-6"
+            transition={{ delay: 0.2 }}
+            className="flex items-center justify-center md:justify-start gap-4"
           >
-            {displayExcerpt}
-          </motion.p>
-
-          {article.showThumbnail !== false && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              className="relative aspect-video w-full overflow-hidden rounded-3xl border border-white/10 shadow-[0_0_40px_-10px_rgba(124,58,237,0.2)]"
-            >
-              <img
-                src={article.imageUrl}
-                alt={displayTitle}
-                className="h-full w-full object-cover"
-              />
-              {/* Overlay Gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-60" />
-            </motion.div>
-          )}
-        </header>
-
-        {/* Content Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-
-          {/* Main Article Body */}
-          <motion.div
-            className="lg:col-span-8"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
-          >
-            <div
-              className="prose prose-invert prose-lg max-w-none tiptap"
-              dangerouslySetInnerHTML={{ __html: displayContent }}
-            />
-
-            {/* Author Block */}
-            <div className="mt-16 border-t border-white/10 pt-10">
-              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 p-6 rounded-2xl bg-white/5 border border-white/10">
-                <div className="h-20 w-20 rounded-full bg-gradient-to-tr from-primary to-secondary p-[2px] shrink-0">
-                  <div className="h-full w-full rounded-full bg-black overflow-hidden">
-                    <img
-                      src={article.author?.avatarUrl || "https://picsum.photos/seed/author/200/200"}
-                      alt={article.author?.name}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
+            {article.showAuthor && (
+              article.author?.avatarUrl ? (
+                <img src={article.author.avatarUrl} alt={article.author.name} className="w-12 h-12 rounded-full border border-slate-200" />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-azure-100 flex items-center justify-center font-bold text-azure-700">
+                  {article.author?.name?.charAt(0) || 'D'}
                 </div>
-                <div>
-                  <div className="font-display text-xl font-bold text-white mb-2 text-center sm:text-left">{article.author?.name || 'LuxTech Architect'}</div>
-                  <p className="text-text-muted text-sm leading-relaxed text-center sm:text-left italic">
-                    {article.author?.bio || 'Passionate about the intersection of technology and design at LuxTech.'}
-                  </p>
-                </div>
-              </div>
+              )
+            )}
+            <div className="text-left">
+              <p className="text-base font-bold text-slate-900 leading-none mb-1">
+                {article.showAuthor ? (article.author?.name || 'Redação') : 'Redação Portal DPE'}
+              </p>
+              <p className="text-xs text-slate-500 capitalize">
+                {article.date}
+              </p>
             </div>
           </motion.div>
-
-          {/* Sidebar */}
-          <motion.div
-            className="lg:col-span-4"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-          >
-            <div className="sticky top-32 space-y-6">
-              <div className="rounded-2xl border border-white/5 bg-surface/50 p-6 backdrop-blur-md">
-                <h3 className="font-display text-lg font-bold text-white mb-4">{t('article.share_transmission')}</h3>
-                <Button
-                  onClick={handleShare}
-                  variant={copied ? "ghost" : "secondary"}
-                  className={`w-full gap-3 transition-all duration-300 ${copied ? 'text-green-400 bg-green-400/10 border-green-400/20' : ''}`}
-                >
-                  {copied ? (
-                    <>
-                      <Check size={18} />
-                      <span className="font-mono text-xs">{t('article.link_copied')}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Share2 size={18} />
-                      <span className="font-mono text-xs">{t('article.transmit_data')}</span>
-                    </>
-                  )}
-                </Button>
-              </div>
-
-              <div className="rounded-2xl border border-white/5 bg-surface/50 p-6 backdrop-blur-md">
-                <h3 className="font-display text-lg font-bold text-white mb-4">{t('article.related_data')}</h3>
-                <div className="space-y-4">
-                  {relatedArticles.map(related => {
-                    const relatedTitle = (i18n.language === 'pt' && related.title_pt) ? related.title_pt : related.title;
-                    return (
-                      <div key={related.id} onClick={(e) => handleRelatedClick(e, related.slug)} className="group block cursor-pointer">
-                        <div className="text-xs font-mono text-primary mb-1">{related.category}</div>
-                        <div className="text-sm text-gray-300 group-hover:text-white transition-colors">
-                          {relatedTitle}
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
         </div>
+
+        {/* Main Image */}
+        {article.imageUrl && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8 }}
+            className="w-full mb-16 rounded-3xl overflow-hidden shadow-xl shadow-slate-200"
+          >
+            <img src={article.imageUrl} alt={article.title} className="w-full h-auto object-cover" />
+          </motion.div>
+        )}
+
+        {/* Content Body */}
+        <div
+          className="prose prose-lg prose-slate max-w-none
+          prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-slate-900
+          prose-p:text-slate-600 prose-p:leading-loose prose-p:font-light
+          prose-a:text-azure-600 prose-a:font-medium prose-a:no-underline hover:prose-a:text-azure-700
+          prose-strong:font-bold prose-strong:text-slate-900
+          prose-img:rounded-3xl prose-img:shadow-xl prose-img:my-12
+          marker:text-azure-500 tiptap"
+          dangerouslySetInnerHTML={{ __html: article.content || '<p>Conteúdo não disponível.</p>' }}
+        />
+
+        {/* Footer Actions */}
+        <div className="mt-24 pt-10 border-t border-slate-100 flex flex-col items-center gap-8">
+          <div className="flex flex-col items-center gap-4">
+            <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Compartilhe este artigo</span>
+            <div className="flex gap-4">
+              <Button
+                onClick={handleShare}
+                variant={copied ? "outline" : "primary"}
+                className="gap-2"
+              >
+                {copied ? (
+                  <>
+                    <Check size={18} />
+                    Copiado!
+                  </>
+                ) : (
+                  <>
+                    <Share2 size={18} />
+                    Compartilhar
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+
+          {/* Author Block */}
+          {article.showAuthor && (
+            <div className="w-full bg-slate-50 rounded-3xl p-8 flex flex-col md:flex-row items-center md:items-start gap-6 mt-8">
+              {article.author?.avatarUrl ? (
+                <img src={article.author.avatarUrl} alt={article.author.name} className="w-20 h-20 rounded-full shadow-lg" />
+              ) : (
+                <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center text-2xl font-bold text-slate-400">
+                  {article.author?.name?.charAt(0) || 'D'}
+                </div>
+              )}
+              <div className="text-center md:text-left">
+                <h3 className="text-xl font-bold text-slate-900 mb-2">{article.author?.name || 'Redação Portal DPE'}</h3>
+                <p className="text-slate-500 leading-relaxed text-sm italic">
+                  {article.author?.bio || 'Compromisso com a verdade e a defesa da liberdade em Pernambuco.'}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Related Articles */}
+        {relatedArticles.length > 0 && (
+          <div className="mt-24">
+            <h3 className="text-2xl font-bold text-slate-900 mb-8 text-center">Leituras Relacionadas</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {relatedArticles.map(related => (
+                <ArticleCard
+                  key={related.id}
+                  article={related}
+                  variant="standard"
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </article>
   );

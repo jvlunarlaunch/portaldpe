@@ -1,7 +1,6 @@
 import React from 'react';
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import { useTranslation } from 'react-i18next'; // Added import
 import { BackgroundWrapper } from './components/layout/BackgroundWrapper';
 import { Navbar } from './components/layout/Navbar';
 import { Home } from './pages/Home';
@@ -28,8 +27,22 @@ const App: React.FC = () => {
             </main>
 
             {/* Footer */}
-            <footer className="border-t border-white/5 bg-black py-12 text-center">
-              <FooterContent />
+            <footer className="bg-white border-t border-slate-100 py-16 px-6">
+              <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+                <div className="flex flex-col items-center md:items-start">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-8 h-8 rounded-full bg-azure-600 flex items-center justify-center text-white text-[10px] font-bold shadow-lg shadow-azure-500/20">DPE</div>
+                    <span className="font-bold text-slate-800">Portal DPE</span>
+                  </div>
+                  <p className="text-slate-500 text-sm max-w-xs text-center md:text-left">
+                    O maior portal conservador de Pernambuco. Compromisso com a verdade e os valores tradicionais do Portal DPE.
+                  </p>
+                </div>
+
+                <div className="flex flex-col items-center md:items-end">
+                  <FooterContent />
+                </div>
+              </div>
             </footer>
           </BackgroundWrapper>
         </LoadingProvider>
@@ -38,14 +51,24 @@ const App: React.FC = () => {
   );
 };
 
-// Helper component to use hook
+// Helper component
 const FooterContent = () => {
-  const { t } = useTranslation();
   return (
-    <p className="font-mono text-xs text-text-muted">
-      {t('footer.designed_by')} <br />
-      © {new Date().getFullYear()} {t('footer.copy')}
-    </p>
+    <div className="text-center md:text-right">
+      <div className="flex gap-6 mb-4 justify-center md:justify-end">
+        <a
+          href="https://www.instagram.com/direita.pernambuco/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-slate-400 hover:text-azure-600 transition-colors"
+        >
+          Instagram
+        </a>
+      </div>
+      <p className="text-xs text-slate-400">
+        © {new Date().getFullYear()} Portal DPE. Todos os direitos reservados.
+      </p>
+    </div>
   );
 }
 
