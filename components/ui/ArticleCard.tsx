@@ -53,7 +53,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'st
         />
         <div className="absolute bottom-0 left-0 p-6 md:p-8 z-30 w-full md:w-3/4">
           <span className="inline-block px-3 py-1 bg-azure-600 text-white text-[10px] md:text-xs font-bold uppercase tracking-widest rounded-full mb-3 md:mb-4 shadow-lg shadow-azure-900/20">
-            {article.category}
+            {article.categories?.[0] || 'Geral'}
           </span>
           <h2 className="text-2xl md:text-3xl lg:text-5xl font-bold text-white mb-2 md:mb-3 leading-tight drop-shadow-sm">
             {article.title}
@@ -86,7 +86,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'st
         </div>
         <div className="flex flex-col flex-grow min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] font-bold text-azure-600 uppercase tracking-wider">{article.category}</span>
+            <span className="text-[10px] font-bold text-azure-600 uppercase tracking-wider">{article.categories?.[0] || 'Geral'}</span>
             <span className="text-[10px] text-slate-400 hidden sm:inline">{article.date}</span>
           </div>
           <h3 className="text-sm md:text-base font-semibold text-slate-900 leading-snug group-hover:text-azure-600 transition-colors line-clamp-3">
@@ -103,10 +103,12 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'st
       className={`group cursor-pointer flex flex-col h-full bg-white transition-all duration-300 hover:-translate-y-1 ${className}`}
     >
       <div className="relative overflow-hidden rounded-3xl aspect-[3/2] mb-4">
-        <div className="absolute top-3 left-3 z-10">
-          <span className="px-2 py-1 bg-white/95 backdrop-blur rounded-md text-[10px] font-bold uppercase tracking-wider text-slate-900 shadow-sm">
-            {article.category}
-          </span>
+        <div className="absolute top-3 left-3 z-10 flex flex-wrap gap-1">
+          {article.categories?.slice(0, 2).map(cat => (
+            <span key={cat} className="px-2 py-1 bg-white/95 backdrop-blur rounded-md text-[10px] font-bold uppercase tracking-wider text-slate-900 shadow-sm">
+              {cat}
+            </span>
+          ))}
         </div>
         <img
           src={article.imageUrl}

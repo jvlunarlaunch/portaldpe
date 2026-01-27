@@ -2,13 +2,16 @@ import { supabase } from './supabase';
 import { Article, Author } from './types';
 
 // Map database column names to frontend property names
+// Map database column names to frontend property names
 const mapArticle = (dbArticle: any): Article => ({
     id: dbArticle.id.toString(),
     slug: dbArticle.slug,
     title: dbArticle.title,
     excerpt: dbArticle.excerpt,
     content: dbArticle.content,
-    category: dbArticle.categories_portaldpe?.name || 'Uncategorized',
+    categories: dbArticle.article_categories
+        ? dbArticle.article_categories.map((ac: any) => ac.categories_portaldpe.name)
+        : [],
     readTime: dbArticle.read_time,
     date: new Date(dbArticle.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).replace('.', ''),
     updatedAt: dbArticle.updated_at ? new Date(dbArticle.updated_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).replace('.', '') : undefined,
@@ -115,7 +118,7 @@ export const updateAuthor = async (id: string, author: Partial<Author> & { passw
 export const fetchArticles = async (params: { category?: string, page?: number, limit?: number, status?: string } = {}): Promise<Article[]> => {
     let query = supabase
         .from('articles_portaldpe')
-        .select('*, categories_portaldpe(name), authors_portaldpe(*)');
+        .select('*, article_categories(categories_portaldpe(name)), authors_portaldpe(*)');
 
     if (params.status && params.status !== 'all') {
         query = query.eq('status', params.status);
@@ -123,11 +126,29 @@ export const fetchArticles = async (params: { category?: string, page?: number, 
         query = query.eq('status', 'published');
     }
 
+    // Filter by category if provided
+    // Note: Filtering by deep relation in separate step or using !inner if needed
+    // Simple approach: Fetch all match status, then filter in memory if category is specific, 
+    // OR use a more complex query. Given Supabase limitations on deep filters, 
+    // we can filter the ID first if category is present.
+
     if (params.category && params.category !== 'Todos') {
-        // Find category ID
         const { data: catData } = await supabase.from('categories_portaldpe').select('id').eq('name', params.category).single();
         if (catData) {
-            query = query.eq('category_id', catData.id);
+            // Find articles that have this category
+            // We need to use !inner hint on relation/junction but Supabase JS syntax varies.
+            // Alternative: select article_ids from junction table
+            const { data: articleIds } = await supabase
+                .from('article_categories')
+                .select('article_id')
+                .eq('category_id', catData.id);
+
+            if (articleIds) {
+                const ids = articleIds.map(a => a.article_id);
+                query = query.in('id', ids);
+            } else {
+                return [];
+            }
         }
     }
 
@@ -149,7 +170,7 @@ export const fetchArticles = async (params: { category?: string, page?: number, 
 export const fetchArticleById = async (id: string): Promise<Article | null> => {
     const { data, error } = await supabase
         .from('articles_portaldpe')
-        .select('*, categories_portaldpe(name), authors_portaldpe(*)')
+        .select('*, article_categories(categories_portaldpe(name)), authors_portaldpe(*)')
         .eq('id', id)
         .single();
 
@@ -160,7 +181,7 @@ export const fetchArticleById = async (id: string): Promise<Article | null> => {
 export const fetchArticleBySlug = async (slug: string): Promise<Article | null> => {
     const { data, error } = await supabase
         .from('articles_portaldpe')
-        .select('*, categories_portaldpe(name), authors_portaldpe(*)')
+        .select('*, article_categories(categories_portaldpe(name)), authors_portaldpe(*)')
         .eq('slug', slug)
         .single();
 
@@ -169,16 +190,33 @@ export const fetchArticleBySlug = async (slug: string): Promise<Article | null> 
 };
 
 export const fetchRelatedArticles = async (id: string): Promise<Partial<Article>[]> => {
-    const { data: current } = await supabase.from('articles_portaldpe').select('category_id').eq('id', id).single();
-    if (!current) return [];
+    // Get categories of current article
+    const { data: currentCategories } = await supabase
+        .from('article_categories')
+        .select('category_id')
+        .eq('article_id', id);
+
+    if (!currentCategories || currentCategories.length === 0) return [];
+
+    // Get IDs of articles that share at least one category
+    const categoryIds = currentCategories.map(c => c.category_id);
+    const { data: relatedIds } = await supabase
+        .from('article_categories')
+        .select('article_id')
+        .in('category_id', categoryIds)
+        .neq('article_id', id)
+        .limit(20); // Limit pool to search
+
+    if (!relatedIds || relatedIds.length === 0) return [];
+
+    // Fetch actial articles
+    const uniqueArticleIds = Array.from(new Set(relatedIds.map(r => r.article_id))).slice(0, 3);
 
     const { data, error } = await supabase
         .from('articles_portaldpe')
-        .select('id, slug, title, image_url, categories_portaldpe(name)')
-        .eq('category_id', current.category_id)
-        .eq('status', 'published')
-        .neq('id', id)
-        .limit(3);
+        .select('id, slug, title, image_url, article_categories(categories_portaldpe(name))')
+        .in('id', uniqueArticleIds)
+        .eq('status', 'published');
 
     if (error) return [];
     return data.map(r => ({
@@ -186,7 +224,9 @@ export const fetchRelatedArticles = async (id: string): Promise<Partial<Article>
         slug: r.slug,
         title: r.title,
         imageUrl: r.image_url,
-        category: (r.categories_portaldpe as any)?.name
+        categories: r.article_categories
+            ? r.article_categories.map((ac: any) => ac.categories_portaldpe.name)
+            : []
     }));
 };
 
@@ -200,17 +240,19 @@ export const createArticle = async (article: Partial<Article>) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { data: catData } = await supabase.from('categories_portaldpe').select('id').eq('name', article.category).single();
-    if (!catData) throw new Error('Invalid category');
+    // Get IDs for all selected categories
+    const { data: catData } = await supabase.from('categories_portaldpe').select('id, name').in('name', article.categories || []);
+    if (!catData || catData.length === 0) throw new Error('Invalid categories');
 
     const slug = article.slug || article.title?.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
-    const { data, error } = await supabase.from('articles_portaldpe').insert([{
+    // Insert article
+    const { data: articleData, error } = await supabase.from('articles_portaldpe').insert([{
         title: article.title,
         slug,
         excerpt: article.excerpt,
         content: article.content,
-        category_id: catData.id,
+        // category_id: null, // Deprecated
         author_id: user.id,
         read_time: article.readTime,
         image_url: article.imageUrl,
@@ -219,15 +261,24 @@ export const createArticle = async (article: Partial<Article>) => {
         show_thumbnail: article.showThumbnail,
         show_author: article.showAuthor,
         status: article.status || 'draft'
-    }]);
+    }]).select().single();
 
     if (error) throw error;
+
+    // Insert category relationships
+    const articleId = articleData.id;
+    const categoryInserts = catData.map(c => ({
+        article_id: articleId,
+        category_id: c.id
+    }));
+
+    const { error: catError } = await supabase.from('article_categories').insert(categoryInserts);
+    if (catError) throw catError; // Note: might leave orphaned article if this fails. Transaction would be better but simple insert is ok.
+
     return {};
 };
 
 export const updateArticle = async (id: string, article: Partial<Article>) => {
-    const { data: catData } = await supabase.from('categories_portaldpe').select('id').eq('name', article.category).single();
-
     const updateData: any = {
         title: article.title,
         slug: article.slug,
@@ -243,14 +294,31 @@ export const updateArticle = async (id: string, article: Partial<Article>) => {
         updated_at: new Date().toISOString()
     };
 
-    if (catData) updateData.category_id = catData.id;
-
     const { error } = await supabase
         .from('articles_portaldpe')
         .update(updateData)
         .eq('id', id);
 
     if (error) throw error;
+
+    // Update categories if provided
+    if (article.categories) {
+        // 1. Get new category IDs
+        const { data: catData } = await supabase.from('categories_portaldpe').select('id').in('name', article.categories);
+
+        if (catData) {
+            // 2. Delete existing relationships
+            await supabase.from('article_categories').delete().eq('article_id', id);
+
+            // 3. Insert new relationships
+            const categoryInserts = catData.map(c => ({
+                article_id: id,
+                category_id: c.id
+            }));
+            await supabase.from('article_categories').insert(categoryInserts);
+        }
+    }
+
     return { id, ...article };
 };
 

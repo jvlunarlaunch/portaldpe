@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ImageIcon, Lock, Edit3, Trash2, Plus, FileText, BarChart, ArrowLeft, Save, Loader2, RefreshCw, Upload, User, Users } from 'lucide-react';
+import { ImageIcon, Lock, Edit3, Trash2, Plus, FileText, BarChart, ArrowLeft, Save, Loader2, RefreshCw, Upload, User, Users, Check } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { RichEditor } from '../components/ui/RichEditor';
 import { fetchArticles, fetchCategories, createArticle, updateArticle, deleteArticle, uploadImage, login as loginApi, logout as logoutApi, fetchAuthors, createAuthor, updateAuthor } from '../api';
@@ -37,7 +37,7 @@ export const Admin: React.FC = () => {
   const [isSlugCustom, setIsSlugCustom] = useState(false);
   const [editorContent, setEditorContent] = useState('');
   const [articleExcerpt, setArticleExcerpt] = useState('');
-  const [articleCategory, setArticleCategory] = useState('');
+  const [articleCategories, setArticleCategories] = useState<string[]>([]);
   const [articleImage, setArticleImage] = useState('https://picsum.photos/seed/tech/800/600');
   const [articleImageFile, setArticleImageFile] = useState<File | null>(null);
   const [showThumbnail, setShowThumbnail] = useState(true);
@@ -69,7 +69,7 @@ export const Admin: React.FC = () => {
     setArticles(arts || []);
     setCategories(cats || []);
     setAuthors(auths || []);
-    if (cats && cats.length > 0 && !articleCategory) setArticleCategory(cats[0].name);
+    if (cats && cats.length > 0 && articleCategories.length === 0) setArticleCategories([cats[0].name]);
     setLoading(false);
   };
 
@@ -104,7 +104,7 @@ export const Admin: React.FC = () => {
     setIsFeatured(false);
     setIsMain(false);
     setStatus('draft');
-    if (categories.length > 0) setArticleCategory(categories[0].name);
+    if (categories.length > 0) setArticleCategories([categories[0].name]);
     setIsEditing(true);
     window.scrollTo(0, 0);
   };
@@ -116,7 +116,7 @@ export const Admin: React.FC = () => {
     setIsSlugCustom(true);
     setEditorContent(article.content || '');
     setArticleExcerpt(article.excerpt);
-    setArticleCategory(article.category);
+    setArticleCategories(article.categories || []);
     setArticleImage(article.imageUrl);
     setArticleImageFile(null);
     setShowThumbnail(article.showThumbnail !== false);
@@ -151,7 +151,7 @@ export const Admin: React.FC = () => {
         title: articleTitle,
         content: editorContent,
         excerpt: articleExcerpt,
-        category: articleCategory,
+        categories: articleCategories,
         readTime: calculatedReadTime,
         imageUrl: finalImageUrl,
         featured: isFeatured,
@@ -349,9 +349,29 @@ export const Admin: React.FC = () => {
               <div className="space-y-6 bg-white/5 p-6 rounded-3xl border border-white/10 h-fit">
                 <div>
                   <label className="block text-[10px] font-mono text-text-muted mb-2 uppercase tracking-widest">Categoria</label>
-                  <select value={articleCategory} onChange={(e) => setArticleCategory(e.target.value)} className="w-full bg-black border border-white/10 rounded-xl p-3 text-white text-sm focus:border-primary outline-none">
-                    {categories.map(cat => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
-                  </select>
+                  <label className="block text-[10px] font-mono text-text-muted mb-2 uppercase tracking-widest">Categorias</label>
+                  <div className="bg-black border border-white/10 rounded-xl p-3 max-h-40 overflow-y-auto space-y-2">
+                    {categories.map(cat => (
+                      <label key={cat.id} className="flex items-center gap-2 cursor-pointer group">
+                        <div className={`w-4 h-4 border rounded transition-colors flex items-center justify-center ${articleCategories.includes(cat.name) ? 'bg-primary border-primary' : 'border-white/20 group-hover:border-white/40'}`}>
+                          {articleCategories.includes(cat.name) && <Check size={10} className="text-black" />}
+                        </div>
+                        <input
+                          type="checkbox"
+                          className="hidden"
+                          checked={articleCategories.includes(cat.name)}
+                          onChange={() => {
+                            if (articleCategories.includes(cat.name)) {
+                              setArticleCategories(articleCategories.filter(c => c !== cat.name));
+                            } else {
+                              setArticleCategories([...articleCategories, cat.name]);
+                            }
+                          }}
+                        />
+                        <span className={`text-sm ${articleCategories.includes(cat.name) ? 'text-white' : 'text-slate-400 group-hover:text-slate-300'}`}>{cat.name}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
                 <div>
                   <label className="block text-[10px] font-mono text-text-muted mb-2 uppercase tracking-widest">Capa do Artigo</label>
@@ -449,7 +469,13 @@ export const Admin: React.FC = () => {
                   {articles.map((article) => (
                     <tr key={article.id} className="group hover:bg-white/5 transition-colors">
                       <td className="px-6 py-4"><div className="font-medium text-white group-hover:text-primary transition-colors">{article.title}</div></td>
-                      <td className="px-6 py-4"><span className="inline-block rounded-md bg-white/5 px-2 py-1 font-mono text-[10px] text-text-muted uppercase">{article.category}</span></td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-wrap gap-1">
+                          {article.categories?.map(cat => (
+                            <span key={cat} className="inline-block rounded-md bg-white/5 px-2 py-1 font-mono text-[10px] text-text-muted uppercase">{cat}</span>
+                          ))}
+                        </div>
+                      </td>
                       <td className="px-6 py-4"><span className={`inline-block rounded-md px-2 py-1 font-mono text-[10px] uppercase ${article.status === 'published' ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20'}`}>{article.status === 'published' ? 'Publicado' : 'Rascunho'}</span></td>
                       <td className="px-6 py-4 font-mono text-[10px] text-text-muted">{article.date}</td>
                       <td className="px-6 py-4 text-right">{(isAdmin || article.author?.id === currentUser?.id) && <div className="flex items-center justify-end gap-2"><button onClick={() => handleEdit(article)} className="rounded-full p-2 text-text-muted hover:bg-white/10 hover:text-white transition-all"><Edit3 size={16} /></button><button onClick={() => handleDelete(article.id)} className="rounded-full p-2 text-text-muted hover:bg-red-500/20 hover:text-red-500 transition-all"><Trash2 size={16} /></button></div>}</td>

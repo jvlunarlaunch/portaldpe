@@ -32,10 +32,11 @@ export const Home: React.FC = () => {
   }, []);
 
   // Extract unique categories and add 'Todos'
-  const categoriesList = ['Todos', ...Array.from(new Set(articles.map(a => a.category)))];
+  // Extract unique categories and add 'Todos'
+  const categoriesList = ['Todos', ...Array.from(new Set(articles.flatMap(a => a.categories || []))).filter(Boolean).sort()];
 
   const filteredArticles = articles.filter(article => {
-    const matchesCategory = selectedCategory === 'Todos' || article.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'Todos' || (article.categories && article.categories.includes(selectedCategory));
 
     const matchesSearch =
       article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -54,7 +55,7 @@ export const Home: React.FC = () => {
     ? filteredArticles.filter(a => !heroArticles.find(h => h.id === a.id))
     : filteredArticles;
 
-  const opinionArticles = articles.filter(a => a.category?.toLowerCase() === 'opinião' || a.category?.toLowerCase() === 'coluna').slice(0, 5);
+  const opinionArticles = articles.filter(a => a.categories?.some(c => c.toLowerCase() === 'opinião' || c.toLowerCase() === 'coluna')).slice(0, 5);
   const trendingArticles = articles.slice(0, 5);
 
   if (loading) {
@@ -196,7 +197,7 @@ export const Home: React.FC = () => {
                         {index + 1}
                       </span>
                       <div className="min-w-0">
-                        <span className="text-[10px] font-bold text-azure-600 uppercase mb-1 block">{article.category}</span>
+                        <span className="text-[10px] font-bold text-azure-600 uppercase mb-1 block">{(article.categories && article.categories.length > 0) ? article.categories[0] : 'Geral'}</span>
                         <h4 className="text-sm font-semibold text-slate-800 group-hover:text-azure-600 transition-colors line-clamp-2 leading-snug">
                           {article.title}
                         </h4>

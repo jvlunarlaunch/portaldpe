@@ -110,9 +110,13 @@ export const ArticlePage: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             className="inline-flex items-center gap-3 mb-6 justify-center md:justify-start"
           >
-            <span className="px-3 py-1 rounded-full bg-azure-600 text-white text-xs font-bold tracking-widest uppercase">
-              {article.category}
-            </span>
+            <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+              {article.categories?.map(cat => (
+                <span key={cat} className="px-3 py-1 rounded-full bg-azure-600 text-white text-xs font-bold tracking-widest uppercase">
+                  {cat}
+                </span>
+              ))}
+            </div>
             <span className="text-slate-500 text-xs font-medium tracking-wide uppercase flex items-center gap-1.5">
               <Clock size={12} />
               {article.readTime}
