@@ -174,7 +174,7 @@ export const fetchRelatedArticles = async (id: string): Promise<Partial<Article>
 
     const { data, error } = await supabase
         .from('articles_portaldpe')
-        .select('id, slug, title, categories_portaldpe(name)')
+        .select('id, slug, title, image_url, categories_portaldpe(name)')
         .eq('category_id', current.category_id)
         .eq('status', 'published')
         .neq('id', id)
@@ -185,6 +185,7 @@ export const fetchRelatedArticles = async (id: string): Promise<Partial<Article>
         id: r.id.toString(),
         slug: r.slug,
         title: r.title,
+        imageUrl: r.image_url,
         category: (r.categories_portaldpe as any)?.name
     }));
 };

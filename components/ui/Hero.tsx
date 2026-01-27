@@ -15,7 +15,7 @@ export const Hero: React.FC<HeroProps> = ({ articles, onOpenMembership }) => {
     const sidePosts = articles.slice(1, 3); // Gets 2nd and 3rd posts
 
     return (
-        <section className="pt-28 md:pt-32 pb-8 md:pb-12 px-4 md:px-6">
+        <section className="pt-28 md:pt-32 pb-0 mb-10 md:mb-12 px-4 md:px-6">
             <div className="max-w-7xl mx-auto">
                 {/* Section Title */}
                 <div className="flex items-center gap-2 mb-6">
@@ -36,11 +36,11 @@ export const Hero: React.FC<HeroProps> = ({ articles, onOpenMembership }) => {
                     {/* Secondary Headlines - Takes 1 col, stacked. */}
                     <div className="flex flex-col gap-4 md:gap-6 h-auto lg:h-full">
                         {sidePosts.map((article) => (
-                            <div key={article.id} className="flex-1 bg-white rounded-2xl p-2 border border-slate-100 hover:border-azure-100 transition-colors min-h-[140px]">
+                            <div key={article.id} className="bg-white rounded-2xl p-2 border border-slate-100 hover:border-azure-100 transition-colors">
                                 <ArticleCard
                                     article={article}
                                     variant="compact"
-                                    className="h-full items-center"
+                                    className="items-center"
                                 />
                             </div>
                         ))}

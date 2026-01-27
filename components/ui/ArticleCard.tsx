@@ -75,7 +75,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'st
     return (
       <div
         onClick={handleClick}
-        className={`group cursor-pointer flex gap-3 md:gap-4 items-start ${className}`}
+        className={`group cursor-pointer flex gap-3 md:gap-4 items-center ${className}`}
       >
         <div className="w-20 h-20 md:w-32 md:h-24 flex-shrink-0 overflow-hidden rounded-xl">
           <img
