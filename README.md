@@ -1,4 +1,4 @@
-# LuxTech Blog (Portal DPE)
+# Portal DPE
 
 Um portal de notícias e artigos moderno construído com React 19, Tailwind CSS 4 e Supabase.
 
@@ -18,7 +18,7 @@ Um portal de notícias e artigos moderno construído com React 19, Tailwind CSS 
 1. **Clonar o repositório:**
    ```bash
    git clone <url-do-repositorio>
-   cd dpe-blog
+   cd portaldpe
    ```
 
 2. **Instalar as dependências:**
@@ -38,15 +38,14 @@ Um portal de notícias e artigos moderno construído com React 19, Tailwind CSS 
 Para rodar o projeto em modo de desenvolvimento:
 
 ```bash
-npm run dev:client
+npm run dev
 ```
-*(Nota: O comando `npm run dev` atualmente tenta rodar um servidor local que não é mais utilizado. Use o comando acima para o frontend).*
 
 O portal estará disponível em `http://localhost:3000`.
 
 ## 📦 Scripts Disponíveis
 
-- `npm run dev:client`: Inicia o ambiente de desenvolvimento do Vite.
+- `npm run dev`: Inicia o ambiente de desenvolvimento do Vite.
 - `npm run build`: Gera a versão de produção otimizada com ofuscação de código.
 - `npm run sitemap`: Gera o sitemap para SEO.
 
