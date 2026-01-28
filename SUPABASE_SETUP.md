@@ -97,11 +97,11 @@ Execute este script logo após criar as tabelas para popular as categorias padr�
 
 ```sql
 insert into categories_portaldpe (name, slug) values
-('Política', 'politica'),
-('Economia', 'economia'),
-('Cultura', 'cultura'),
+('Brasil', 'brasil'),
+('Pernambuco', 'pernambuco'),
+('Notícias', 'notícias'),
 ('Mundo', 'mundo'),
-('Brasil', 'brasil');
+('Opinião', 'opiniao');
 ```
 
 ## 3. Configuração Manual (Storage)
