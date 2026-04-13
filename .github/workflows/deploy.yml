@@ -30,7 +30,6 @@ jobs:
           server: ftp.novo.portaldpe.com.br
           username: u191607503.portaldpe
           password: ${{ secrets.FTP_PASSWORD }}
-          handler: ftp
           local-dir: ./dist/
           server-dir: /home/u191607503/domains/novo.portaldpe.com.br/public_html/
           port: 21
