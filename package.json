@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "start": "node server.js",
     "sitemap": "node scripts/generate-sitemap.js"
   },
   "dependencies": {
@@ -43,6 +44,8 @@
     "@tiptap/starter-kit": "^3.16.0",
     "@tiptap/suggestion": "^3.16.0",
     "axios": "^1.13.2",
+    "dotenv": "^17.2.3",
+    "express": "^4.22.1",
     "framer-motion": "^12.28.1",
     "katex": "^0.16.27",
     "lowlight": "^3.3.0",
@@ -62,7 +65,6 @@
     "@types/react-helmet-async": "^1.0.1",
     "@vitejs/plugin-react": "^5.0.0",
     "autoprefixer": "^10.4.23",
-    "dotenv": "^17.2.3",
     "javascript-obfuscator": "^5.2.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.18",
