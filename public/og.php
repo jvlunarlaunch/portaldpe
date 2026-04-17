@@ -116,6 +116,10 @@ if ($imageUrl) {
 
 // Injeta no index.html
 $html = file_get_contents($indexPath);
+
+// Remove OG/Twitter tags padrão do index.html para evitar duplicatas
+$html = preg_replace('/<meta\s[^>]*(property="og:[^"]*"|name="twitter:[^"]*")[^>]*>\s*/i', '', $html);
+
 $html = preg_replace('/<title>[^<]*<\/title>/', "<title>{$title} | Portal DPE</title>", $html);
 $html = str_replace('</head>', $ogTags . "\n</head>", $html);
 
