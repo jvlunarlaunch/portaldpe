@@ -69,9 +69,9 @@ export const About: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="w-20 h-20 bg-azure-600 rounded-2xl shadow-xl shadow-azure-600/20 flex items-center justify-center text-white font-bold text-2xl mb-8"
+            className="w-20 h-20 rounded-2xl shadow-xl shadow-azure-600/20 mb-8 overflow-hidden"
           >
-            DPE
+            <img src="/logo.png" alt="Logo Portal DPE" className="w-full h-full object-contain" />
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}

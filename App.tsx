@@ -31,7 +31,7 @@ const App: React.FC = () => {
               <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
                 <div className="flex flex-col items-center md:items-start">
                   <div className="flex items-center gap-2 mb-4">
-                    <div className="w-8 h-8 rounded-full bg-azure-600 flex items-center justify-center text-white text-[10px] font-bold shadow-lg shadow-azure-500/20">DPE</div>
+                    <img src="/logo.png" alt="Logo Portal DPE" className="w-8 h-8 rounded-full object-contain shadow-lg shadow-azure-500/20" />
                     <span className="font-bold text-slate-800">Portal DPE</span>
                   </div>
                   <p className="text-slate-500 text-sm max-w-xs text-center md:text-left">
