@@ -52,3 +52,4 @@ O portal estará disponível em `http://localhost:3000`.
 ## 🛡️ Área Administrativa
 
 Para gerenciar artigos, autores e categorias, acesse a rota `/admin`. O sistema utiliza o Supabase Auth para controle de acesso.
+
