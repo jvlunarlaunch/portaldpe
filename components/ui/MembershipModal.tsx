@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, Loader2, ChevronLeft, ArrowRight } from 'lucide-react';
 import { Button } from './Button';
+import { supabase } from '../../supabase';
 
 interface MembershipModalProps {
   isOpen: boolean;
@@ -131,18 +132,21 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
     setStatus('loading');
 
     try {
-      await fetch('https://n8n.lunarlaunch.com.br/webhook/5a88ea7a-19ce-4a92-b7a6-2a1caf24d6ed', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          source: 'portaldpe_membership',
-          timestamp: new Date().toISOString()
-        }),
-      });
+      const { error } = await supabase
+        .from('inscritosparamembros_portaldpe')
+        .insert({
+          name: formData.name,
+          age: formData.age ? parseInt(formData.age) : null,
+          phone: formData.phone,
+          email: formData.email,
+          address: formData.address,
+          voting_location: formData.voting_location,
+          instagram: formData.instagram,
+          referral: formData.referral,
+          consent: formData.consent,
+        });
 
+      if (error) throw error;
       setStatus('success');
     } catch (error) {
       console.error('Submission error:', error);
