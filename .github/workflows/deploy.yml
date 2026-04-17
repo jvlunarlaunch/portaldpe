@@ -27,10 +27,10 @@ jobs:
       - name: 🚀 Deploy to Hostinger via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          server: 62.72.62.160
+          server: ftp.portaldpe.com.br
           username: u191607503.dpe
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: ./dist/
           server-dir: /
           port: 21
-          protocol: ftp
+          protocol: ftps
