@@ -39,9 +39,11 @@ export const Navbar: React.FC = () => {
             onClick={() => setMobileMenuOpen(false)}
             className="cursor-pointer flex items-center gap-3 group relative z-50"
           >
-            <div className={`transition-all duration-500 rounded-full flex items-center justify-center font-bold shadow-lg shadow-azure-500/20 ${logoBg} ${scrolled ? 'w-8 h-8 text-[10px]' : 'w-10 h-10 text-xs'}`}>
-              DPE
-            </div>
+            <img
+              src="/logo.png"
+              alt="Logo Portal DPE"
+              className={`transition-all duration-500 rounded-full object-contain shadow-lg shadow-azure-500/20 ${scrolled ? 'w-8 h-8' : 'w-10 h-10'}`}
+            />
             <span className={`font-semibold tracking-tight transition-all duration-500 ${textColor} ${scrolled ? 'text-lg' : 'text-xl'}`}>
               Portal DPE
             </span>
