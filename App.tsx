@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
 import { BackgroundWrapper } from './components/layout/BackgroundWrapper';
 import { Navbar } from './components/layout/Navbar';
@@ -9,10 +9,23 @@ import { ArticlePage } from './pages/ArticlePage';
 import { About } from './pages/About';
 import { LoadingProvider } from './context/LoadingContext';
 
+declare function gtag(...args: unknown[]): void;
+
+const PageViewTracker: React.FC = () => {
+  const location = useLocation();
+  useEffect(() => {
+    gtag('event', 'page_view', {
+      page_path: location.pathname + location.search,
+    });
+  }, [location]);
+  return null;
+};
+
 const App: React.FC = () => {
   return (
     <HelmetProvider>
       <Router>
+        <PageViewTracker />
         <LoadingProvider>
           <BackgroundWrapper>
             <Navbar />
