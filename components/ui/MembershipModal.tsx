@@ -77,6 +77,10 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
     }
   ];
 
+  useEffect(() => {
+    if (isOpen) gtag('event', 'membership_modal_open');
+  }, [isOpen]);
+
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<Record<string, any>>({
     name: '',
@@ -147,6 +151,7 @@ export const MembershipModal: React.FC<MembershipModalProps> = ({ isOpen, onClos
         });
 
       if (error) throw error;
+      gtag('event', 'membership_form_submit', { success: true });
       setStatus('success');
     } catch (error) {
       console.error('Submission error:', error);

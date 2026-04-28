@@ -67,6 +67,35 @@ export const ArticlePage: React.FC = () => {
     loadData();
   }, [slug]);
 
+  useEffect(() => {
+    if (!article) return;
+    const title = article.title;
+
+    const milestones = [30, 60, 120];
+    const timers = milestones.map(seconds =>
+      setTimeout(() => {
+        gtag('event', 'article_read_time', { article_title: title, seconds_spent: seconds });
+      }, seconds * 1000)
+    );
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          gtag('event', 'article_read_complete', { article_title: title });
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.5 }
+    );
+    const footer = document.getElementById('article-footer');
+    if (footer) observer.observe(footer);
+
+    return () => {
+      timers.forEach(clearTimeout);
+      observer.disconnect();
+    };
+  }, [article?.slug]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center pt-20 bg-white">
@@ -203,7 +232,7 @@ export const ArticlePage: React.FC = () => {
         />
 
         {/* Footer Actions */}
-        <div className="mt-24 pt-10 border-t border-slate-100 flex flex-col items-center gap-8">
+        <div id="article-footer" className="mt-24 pt-10 border-t border-slate-100 flex flex-col items-center gap-8">
           <div className="flex flex-col items-center gap-4">
             <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Compartilhe este artigo</span>
             <div className="flex flex-wrap gap-3 justify-center">

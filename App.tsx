@@ -9,8 +9,6 @@ import { ArticlePage } from './pages/ArticlePage';
 import { About } from './pages/About';
 import { LoadingProvider } from './context/LoadingContext';
 
-declare function gtag(...args: unknown[]): void;
-
 const PageViewTracker: React.FC = () => {
   const location = useLocation();
   useEffect(() => {
