@@ -15,6 +15,7 @@ export interface Article {
   showAuthor?: boolean;
   author?: Author;
   authorId?: string;
+  authorName?: string;
   status: 'draft' | 'published';
 }
 

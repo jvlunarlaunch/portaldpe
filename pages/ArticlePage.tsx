@@ -169,7 +169,7 @@ export const ArticlePage: React.FC = () => {
             )}
             <div className="text-left">
               <p className="text-base font-bold text-slate-900 leading-none mb-1">
-                {article.showAuthor ? (article.author?.name || 'Redação') : 'Redação Portal DPE'}
+                {article.showAuthor ? (article.authorName || article.author?.name || 'Redação') : 'Redação Portal DPE'}
               </p>
               <p className="text-xs text-slate-500 capitalize">
                 {article.date}
@@ -250,7 +250,7 @@ export const ArticlePage: React.FC = () => {
                 </div>
               )}
               <div className="text-center md:text-left">
-                <h3 className="text-xl font-bold text-slate-900 mb-2">{article.author?.name || 'Redação Portal DPE'}</h3>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">{article.authorName || article.author?.name || 'Redação Portal DPE'}</h3>
                 <p className="text-slate-500 leading-relaxed text-sm italic">
                   {article.author?.bio || 'Compromisso com a verdade e a defesa da liberdade em Pernambuco.'}
                 </p>

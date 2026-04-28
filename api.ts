@@ -21,6 +21,7 @@ const mapArticle = (dbArticle: any): Article => ({
     showThumbnail: dbArticle.show_thumbnail !== undefined ? !!dbArticle.show_thumbnail : true,
     showAuthor: dbArticle.show_author !== undefined ? !!dbArticle.show_author : true,
     status: dbArticle.status || 'draft',
+    authorName: dbArticle.author_name || undefined,
     author: dbArticle.authors_portaldpe ? {
         id: dbArticle.authors_portaldpe.id.toString(),
         name: dbArticle.authors_portaldpe.name,
@@ -260,6 +261,7 @@ export const createArticle = async (article: Partial<Article>) => {
         main: article.main,
         show_thumbnail: article.showThumbnail,
         show_author: article.showAuthor,
+        author_name: article.authorName || null,
         status: article.status || 'draft'
     }]).select().single();
 
@@ -290,6 +292,7 @@ export const updateArticle = async (id: string, article: Partial<Article>) => {
         main: article.main,
         show_thumbnail: article.showThumbnail,
         show_author: article.showAuthor,
+        author_name: article.authorName !== undefined ? article.authorName : undefined,
         status: article.status,
         updated_at: new Date().toISOString()
     };

@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ImageIcon, Lock, Edit3, Trash2, Plus, FileText, BarChart, ArrowLeft, Save, Loader2, RefreshCw, Upload, User, Users, Check } from 'lucide-react';
+import { Lock, Edit3, Trash2, Plus, FileText, ArrowLeft, Save, Loader2, RefreshCw, Upload, Check } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { RichEditor } from '../components/ui/RichEditor';
-import { fetchArticles, fetchCategories, createArticle, updateArticle, deleteArticle, uploadImage, login as loginApi, logout as logoutApi, fetchAuthors, createAuthor, updateAuthor } from '../api';
+import { fetchArticles, fetchCategories, createArticle, updateArticle, deleteArticle, uploadImage, login as loginApi, logout as logoutApi } from '../api';
 import { Article, Author } from '../types';
 
 const slugify = (text: string) => {
   return text
     .toString()
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9 ]/g, '')
@@ -21,13 +21,11 @@ const slugify = (text: string) => {
 export const Admin: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<Author | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'articles' | 'authors'>('articles');
 
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
 
   const [articles, setArticles] = useState<Article[]>([]);
-  const [authors, setAuthors] = useState<Author[]>([]);
   const [categories, setCategories] = useState<{ id: number, name: string }[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -37,6 +35,7 @@ export const Admin: React.FC = () => {
   const [isSlugCustom, setIsSlugCustom] = useState(false);
   const [editorContent, setEditorContent] = useState('');
   const [articleExcerpt, setArticleExcerpt] = useState('');
+  const [articleAuthor, setArticleAuthor] = useState('');
   const [articleCategories, setArticleCategories] = useState<string[]>([]);
   const [articleImage, setArticleImage] = useState('https://picsum.photos/seed/tech/800/600');
   const [articleImageFile, setArticleImageFile] = useState<File | null>(null);
@@ -46,17 +45,6 @@ export const Admin: React.FC = () => {
   const [isMain, setIsMain] = useState(false);
   const [status, setStatus] = useState<'draft' | 'published'>('draft');
 
-  const [isAddingAuthor, setIsAddingAuthor] = useState(false);
-  const [editingAuthorId, setEditingAuthorId] = useState<string | null>(null);
-  const [newAuthorName, setNewAuthorName] = useState('');
-  const [newAuthorUser, setNewAuthorUser] = useState('');
-  const [newAuthorPass, setNewAuthorPass] = useState('');
-  const [newAuthorBio, setNewAuthorBio] = useState('');
-  const [newAuthorAvatar, setNewAuthorAvatar] = useState('');
-  const [newAuthorAvatarFile, setNewAuthorAvatarFile] = useState<File | null>(null);
-
-  const isAdmin = currentUser?.username === 'joaovictor@lunarlaunch.com.br';
-
   useEffect(() => {
     if (currentUser) {
       loadData();
@@ -65,10 +53,9 @@ export const Admin: React.FC = () => {
 
   const loadData = async () => {
     setLoading(true);
-    const [arts, cats, auths] = await Promise.all([fetchArticles({ status: 'all' }), fetchCategories(), fetchAuthors()]);
+    const [arts, cats] = await Promise.all([fetchArticles({ status: 'all' }), fetchCategories()]);
     setArticles(arts || []);
     setCategories(cats || []);
-    setAuthors(auths || []);
     if (cats && cats.length > 0 && articleCategories.length === 0) setArticleCategories([cats[0].name]);
     setLoading(false);
   };
@@ -99,6 +86,7 @@ export const Admin: React.FC = () => {
     setIsSlugCustom(false);
     setArticleImage('https://picsum.photos/seed/tech/800/600');
     setArticleImageFile(null);
+    setArticleAuthor('');
     setShowThumbnail(true);
     setShowAuthor(false);
     setIsFeatured(false);
@@ -119,6 +107,7 @@ export const Admin: React.FC = () => {
     setArticleCategories(article.categories || []);
     setArticleImage(article.imageUrl);
     setArticleImageFile(null);
+    setArticleAuthor(article.authorName || article.author?.name || '');
     setShowThumbnail(article.showThumbnail !== false);
     setShowAuthor(article.showAuthor === true);
     setIsFeatured(!!article.featured);
@@ -158,7 +147,7 @@ export const Admin: React.FC = () => {
         main: isMain,
         showThumbnail: showThumbnail,
         showAuthor: showAuthor,
-        authorId: currentUser?.id,
+        authorName: articleAuthor,
         status: newStatus,
         slug: articleSlug ? slugify(articleSlug) : slugify(articleTitle)
       };
@@ -172,79 +161,6 @@ export const Admin: React.FC = () => {
     } catch (e) {
       console.error(e);
       alert('Erro ao salvar artigo');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAddAuthor = async () => {
-    if (!newAuthorName || !newAuthorUser || !newAuthorPass) return alert("Campos obrigatórios ausentes");
-    setLoading(true);
-    try {
-      let finalAvatarUrl = newAuthorAvatar;
-      if (newAuthorAvatarFile) {
-        const { url } = await uploadImage(newAuthorAvatarFile);
-        finalAvatarUrl = url;
-      }
-      await createAuthor({
-        name: newAuthorName,
-        username: newAuthorUser,
-        password: newAuthorPass,
-        bio: newAuthorBio,
-        avatarUrl: finalAvatarUrl
-      });
-      setIsAddingAuthor(false);
-      loadData();
-      setNewAuthorName('');
-      setNewAuthorUser('');
-      setNewAuthorPass('');
-      setNewAuthorBio('');
-      setNewAuthorAvatar('');
-      setNewAuthorAvatarFile(null);
-    } catch (e) {
-      alert('Erro ao criar autor');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEditAuthor = (author: Author) => {
-    setEditingAuthorId(author.id);
-    setNewAuthorName(author.name);
-    setNewAuthorUser(author.username);
-    setNewAuthorPass('');
-    setNewAuthorBio(author.bio || '');
-    setNewAuthorAvatar(author.avatarUrl || '');
-    setNewAuthorAvatarFile(null);
-    setIsAddingAuthor(true);
-  };
-
-  const handleUpdateAuthor = async () => {
-    if (!editingAuthorId) return;
-    setLoading(true);
-    try {
-      let finalAvatarUrl = newAuthorAvatar;
-      if (newAuthorAvatarFile) {
-        const { url } = await uploadImage(newAuthorAvatarFile);
-        finalAvatarUrl = url;
-      }
-      const payload: any = {
-        name: newAuthorName,
-        username: newAuthorUser,
-        bio: newAuthorBio,
-        avatar_url: finalAvatarUrl
-      };
-      if (newAuthorPass) payload.password = newAuthorPass;
-      await updateAuthor(editingAuthorId, payload);
-      if (currentUser?.id === editingAuthorId) {
-        setCurrentUser({ ...currentUser, ...payload, id: editingAuthorId });
-      }
-      setIsAddingAuthor(false);
-      setEditingAuthorId(null);
-      setNewAuthorAvatarFile(null);
-      loadData();
-    } catch (e) {
-      alert('Erro ao atualizar autor');
     } finally {
       setLoading(false);
     }
@@ -348,7 +264,16 @@ export const Admin: React.FC = () => {
               </div>
               <div className="space-y-6 bg-white/5 p-6 rounded-3xl border border-white/10 h-fit">
                 <div>
-                  <label className="block text-[10px] font-mono text-text-muted mb-2 uppercase tracking-widest">Categoria</label>
+                  <label className="block text-[10px] font-mono text-text-muted mb-2 uppercase tracking-widest">Nome do Autor</label>
+                  <input
+                    type="text"
+                    placeholder="Ex: Redação Portal DPE"
+                    className="w-full bg-black border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:border-primary focus:outline-none"
+                    value={articleAuthor}
+                    onChange={(e) => setArticleAuthor(e.target.value)}
+                  />
+                </div>
+                <div>
                   <label className="block text-[10px] font-mono text-text-muted mb-2 uppercase tracking-widest">Categorias</label>
                   <div className="bg-black border border-white/10 rounded-xl p-3 max-h-40 overflow-y-auto space-y-2">
                     {categories.map(cat => (
@@ -422,44 +347,11 @@ export const Admin: React.FC = () => {
           <div className="flex gap-4">
             <Button variant="secondary" onClick={handleLogout}>Sair</Button>
             <Button className="gap-2" onClick={handleCreateNew}><Plus size={16} /> Nova Notícia</Button>
-            <Button variant="ghost" className="gap-2 text-[10px] font-mono tracking-widest text-slate-400" onClick={() => handleEditAuthor(currentUser!)}><Edit3 size={16} /> Editar Perfil</Button>
           </div>
-        </div>
-        <div className="flex gap-4 mb-8 border-b border-white/5">
-          <button onClick={() => setActiveTab('articles')} className={`pb-4 px-2 font-mono text-xs transition-colors relative tracking-widest ${activeTab === 'articles' ? 'text-primary' : 'text-text-muted hover:text-white'}`}>NOTÍCIAS{activeTab === 'articles' && <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}</button>
-          {isAdmin && <button onClick={() => setActiveTab('authors')} className={`pb-4 px-2 font-mono text-xs transition-colors relative tracking-widest ${activeTab === 'authors' ? 'text-primary' : 'text-text-muted hover:text-white'}`}>AUTORES{activeTab === 'authors' && <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />}</button>}
         </div>
         {loading ? (
           <div className="flex justify-center py-20 text-primary"><Loader2 className="animate-spin" size={32} /></div>
-        ) : isAddingAuthor ? (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="font-display text-2xl font-bold text-white">{editingAuthorId ? (editingAuthorId === currentUser?.id ? 'Seu Perfil' : 'Editar Autor') : 'Novo Autor'}</h2>
-              <Button variant="ghost" onClick={() => { setIsAddingAuthor(false); setEditingAuthorId(null); }} className="gap-2 text-slate-400"><ArrowLeft size={16} /> Cancelar</Button>
-            </div>
-            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="bg-slate-900 p-8 rounded-3xl border border-primary/20 shadow-2xl">
-              <h4 className="font-display text-lg font-bold text-white mb-6 flex items-center gap-2">{editingAuthorId ? <Edit3 size={20} className="text-primary" /> : <Plus size={20} className="text-primary" />}{editingAuthorId ? 'Configurações de Perfil' : 'Detalhes do Novo Perfil'}</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <div><label className="block text-xs font-mono text-text-muted mb-1">NOME COMPLETO</label><input type="text" value={newAuthorName} onChange={e => setNewAuthorName(e.target.value)} className="w-full bg-black border border-white/10 rounded-xl p-3 text-white text-sm outline-none" placeholder="Nome" /></div>
-                  <div><label className="block text-xs font-mono text-text-muted mb-1">USUÁRIO (EMAIL)</label><input type="email" value={newAuthorUser} onChange={e => setNewAuthorUser(e.target.value)} className="w-full bg-black border border-white/10 rounded-xl p-3 text-white text-sm outline-none" placeholder="email@portaldpe.com.br" /></div>
-                  <div><label className="block text-xs font-mono text-text-muted mb-1">NOVA SENHA (OPCIONAL)</label><input type="password" value={newAuthorPass} onChange={e => setNewAuthorPass(e.target.value)} className="w-full bg-black border border-white/10 rounded-xl p-3 text-white text-sm outline-none" placeholder="••••••••" /></div>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-mono text-text-muted mb-1">IMAGEM DE AVATAR</label>
-                    <div className="flex items-center gap-4">
-                      <div className="relative h-20 w-20 rounded-full overflow-hidden border-2 border-white/10 bg-black group"><img src={newAuthorAvatar || 'https://via.placeholder.com/200'} className="w-full h-full object-cover" /><input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" onChange={e => { const file = e.target.files?.[0]; if (file) { setNewAuthorAvatarFile(file); setNewAuthorAvatar(URL.createObjectURL(file)); } }} /></div>
-                      <input type="text" value={newAuthorAvatar} onChange={e => setNewAuthorAvatar(e.target.value)} className="flex-1 bg-black border border-white/10 rounded-xl p-2 text-white text-[10px] outline-none" placeholder="URL da imagem..." />
-                    </div>
-                  </div>
-                  <div><label className="block text-xs font-mono text-text-muted mb-1">BIO / DESCRIÇÃO</label><textarea value={newAuthorBio} onChange={e => setNewAuthorBio(e.target.value)} className="w-full bg-black border border-white/10 rounded-xl p-3 text-white text-sm outline-none h-[104px]" /></div>
-                </div>
-              </div>
-              <div className="mt-8 flex justify-end"><Button onClick={editingAuthorId ? handleUpdateAuthor : handleAddAuthor} disabled={loading}>{loading ? <Loader2 className="animate-spin" /> : editingAuthorId ? 'Salvar Alterações' : 'Criar Conta'}</Button></div>
-            </motion.div>
-          </div>
-        ) : activeTab === 'articles' ? (
+        ) : (
           <div className="rounded-3xl border border-white/5 bg-slate-900 overflow-hidden shadow-2xl">
             <div className="px-6 py-4 border-b border-white/5 flex justify-between items-center bg-white/5"><h3 className="font-display text-lg font-bold text-white">Notícias Recentes</h3><button onClick={loadData} className="text-text-muted hover:text-white"><RefreshCw size={14} /></button></div>
             <div className="overflow-x-auto">
@@ -478,29 +370,11 @@ export const Admin: React.FC = () => {
                       </td>
                       <td className="px-6 py-4"><span className={`inline-block rounded-md px-2 py-1 font-mono text-[10px] uppercase ${article.status === 'published' ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20'}`}>{article.status === 'published' ? 'Publicado' : 'Rascunho'}</span></td>
                       <td className="px-6 py-4 font-mono text-[10px] text-text-muted">{article.date}</td>
-                      <td className="px-6 py-4 text-right">{(isAdmin || article.author?.id === currentUser?.id) && <div className="flex items-center justify-end gap-2"><button onClick={() => handleEdit(article)} className="rounded-full p-2 text-text-muted hover:bg-white/10 hover:text-white transition-all"><Edit3 size={16} /></button><button onClick={() => handleDelete(article.id)} className="rounded-full p-2 text-text-muted hover:bg-red-500/20 hover:text-red-500 transition-all"><Trash2 size={16} /></button></div>}</td>
+                      <td className="px-6 py-4 text-right"><div className="flex items-center justify-end gap-2"><button onClick={() => handleEdit(article)} className="rounded-full p-2 text-text-muted hover:bg-white/10 hover:text-white transition-all"><Edit3 size={16} /></button><button onClick={() => handleDelete(article.id)} className="rounded-full p-2 text-text-muted hover:bg-red-500/20 hover:text-red-500 transition-all"><Trash2 size={16} /></button></div></td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            <div className="flex justify-between items-center bg-slate-900 p-6 rounded-3xl border border-white/10 shadow-xl">
-              <div><h3 className="font-display text-xl font-bold text-white">Gerenciamento de Autores</h3><p className="text-sm text-text-muted font-mono">Total de Autores: {authors.length}</p></div>
-              <Button onClick={() => setIsAddingAuthor(true)} className="gap-2"><User size={16} /> Novo Autor</Button>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {authors.map(author => (
-                <div key={author.id} className="bg-slate-900 rounded-3xl border border-white/5 p-6 flex flex-col items-center text-center group hover:border-primary/30 transition-all shadow-xl">
-                  <div className="w-20 h-20 rounded-full overflow-hidden mb-4 ring-2 ring-primary/20"><img src={author.avatarUrl || 'https://via.placeholder.com/200'} alt={author.name} className="w-full h-full object-cover" /></div>
-                  <h5 className="font-display font-bold text-white mb-1 leading-tight">{author.name}</h5>
-                  <p className="font-mono text-[10px] text-primary mb-3 uppercase">{author.username}</p>
-                  <p className="text-xs text-text-muted leading-relaxed line-clamp-3">{author.bio}</p>
-                  <div className="mt-6 flex gap-2 w-full pt-6 border-t border-white/5"><Button variant="ghost" size="sm" className="flex-1 text-[10px] font-mono text-slate-400" onClick={() => handleEditAuthor(author)}>EDITAR PERFIL</Button></div>
-                </div>
-              ))}
             </div>
           </div>
         )}
