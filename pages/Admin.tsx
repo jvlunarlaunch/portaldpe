@@ -218,8 +218,8 @@ export const Admin: React.FC = () => {
                 Status: <span className={status === 'published' ? 'text-primary' : 'text-yellow-500'}>{status === 'published' ? 'Publicado' : 'Rascunho'}</span>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-6">
-              <div className="md:col-span-2 space-y-6">
+            <div className="flex flex-col gap-8 mb-6">
+              <div className="space-y-6">
                 <div>
                   <label className="block text-[10px] font-mono text-text-muted mb-2 uppercase tracking-widest">Título do Artigo</label>
                   <input
