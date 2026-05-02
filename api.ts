@@ -21,6 +21,7 @@ const mapArticle = (dbArticle: any): Article => ({
     showThumbnail: dbArticle.show_thumbnail !== undefined ? !!dbArticle.show_thumbnail : true,
     showAuthor: dbArticle.show_author !== undefined ? !!dbArticle.show_author : true,
     status: dbArticle.status || 'draft',
+    scheduledAt: dbArticle.scheduled_at || null,
     authorName: dbArticle.author_name || undefined,
     author: dbArticle.authors_portaldpe ? {
         id: dbArticle.authors_portaldpe.id.toString(),
@@ -47,7 +48,10 @@ export const login = async (email: string, password: string): Promise<Author> =>
         .eq('id', data.user.id)
         .single();
 
-    if (authorError) throw authorError;
+    if (authorError) {
+        if (authorError.code === 'PGRST116') throw new Error('Usuário não tem perfil de autor cadastrado. Contate o administrador.');
+        throw authorError;
+    }
 
     return {
         id: authorData.id,
@@ -124,7 +128,8 @@ export const fetchArticles = async (params: { category?: string, page?: number, 
     if (params.status && params.status !== 'all') {
         query = query.eq('status', params.status);
     } else if (!params.status) {
-        query = query.eq('status', 'published');
+        const now = new Date().toISOString();
+        query = query.or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`);
     }
 
     // Filter by category if provided
@@ -180,13 +185,15 @@ export const fetchArticleById = async (id: string): Promise<Article | null> => {
 };
 
 export const fetchArticleBySlug = async (slug: string): Promise<Article | null> => {
+    const now = new Date().toISOString();
     const { data, error } = await supabase
         .from('articles_portaldpe')
         .select('*, article_categories(categories_portaldpe(name)), authors_portaldpe(*)')
         .eq('slug', slug)
-        .single();
+        .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
+        .maybeSingle();
 
-    if (error) return null;
+    if (error || !data) return null;
     return mapArticle(data);
 };
 
@@ -217,7 +224,7 @@ export const fetchRelatedArticles = async (id: string): Promise<Partial<Article>
         .from('articles_portaldpe')
         .select('id, slug, title, image_url, article_categories(categories_portaldpe(name))')
         .in('id', uniqueArticleIds)
-        .eq('status', 'published');
+        .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${new Date().toISOString()})`);
 
     if (error) return [];
     return data.map(r => ({
@@ -262,7 +269,8 @@ export const createArticle = async (article: Partial<Article>) => {
         show_thumbnail: article.showThumbnail,
         show_author: article.showAuthor,
         author_name: article.authorName || null,
-        status: article.status || 'draft'
+        status: article.status || 'draft',
+        scheduled_at: article.scheduledAt || null,
     }]).select().single();
 
     if (error) throw error;
@@ -294,6 +302,7 @@ export const updateArticle = async (id: string, article: Partial<Article>) => {
         show_author: article.showAuthor,
         author_name: article.authorName !== undefined ? article.authorName : undefined,
         status: article.status,
+        scheduled_at: article.scheduledAt !== undefined ? article.scheduledAt : undefined,
         updated_at: new Date().toISOString()
     };
 

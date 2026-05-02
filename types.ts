@@ -16,7 +16,8 @@ export interface Article {
   author?: Author;
   authorId?: string;
   authorName?: string;
-  status: 'draft' | 'published';
+  status: 'draft' | 'published' | 'scheduled';
+  scheduledAt?: string | null;
 }
 
 export interface Author {

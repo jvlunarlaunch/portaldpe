@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Lock, Edit3, Trash2, Plus, FileText, ArrowLeft, Save, Loader2, RefreshCw, Upload, Check } from 'lucide-react';
+import { Lock, Edit3, Trash2, Plus, FileText, ArrowLeft, Save, Loader2, RefreshCw, Upload, Check, Clock } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { RichEditor } from '../components/ui/RichEditor';
 import { fetchArticles, fetchCategories, createArticle, updateArticle, deleteArticle, uploadImage, login as loginApi, logout as logoutApi } from '../api';
@@ -43,7 +43,8 @@ export const Admin: React.FC = () => {
   const [showAuthor, setShowAuthor] = useState(false);
   const [isFeatured, setIsFeatured] = useState(false);
   const [isMain, setIsMain] = useState(false);
-  const [status, setStatus] = useState<'draft' | 'published'>('draft');
+  const [status, setStatus] = useState<'draft' | 'published' | 'scheduled'>('draft');
+  const [scheduledAt, setScheduledAt] = useState<string>('');
 
   useEffect(() => {
     if (currentUser) {
@@ -92,6 +93,7 @@ export const Admin: React.FC = () => {
     setIsFeatured(false);
     setIsMain(false);
     setStatus('draft');
+    setScheduledAt('');
     if (categories.length > 0) setArticleCategories([categories[0].name]);
     setIsEditing(true);
     window.scrollTo(0, 0);
@@ -113,6 +115,7 @@ export const Admin: React.FC = () => {
     setIsFeatured(!!article.featured);
     setIsMain(!!article.main);
     setStatus(article.status || 'draft');
+    setScheduledAt(article.scheduledAt ? article.scheduledAt.slice(0, 16) : '');
     setIsEditing(true);
     window.scrollTo(0, 0);
   };
@@ -124,8 +127,12 @@ export const Admin: React.FC = () => {
     }
   };
 
-  const handleSave = async (newStatus: 'draft' | 'published' = 'published') => {
+  const handleSave = async (newStatus: 'draft' | 'published' | 'scheduled' = 'published') => {
     if (!articleTitle || !editorContent) return alert("Título e Conteúdo são obrigatórios");
+    if (newStatus === 'scheduled') {
+      if (!scheduledAt) return alert('Informe a data e hora de publicação para agendar o artigo.');
+      if (new Date(scheduledAt) <= new Date()) return alert('A data de agendamento deve ser no futuro.');
+    }
     setLoading(true);
     let finalImageUrl = articleImage;
     try {
@@ -149,7 +156,8 @@ export const Admin: React.FC = () => {
         showAuthor: showAuthor,
         authorName: articleAuthor,
         status: newStatus,
-        slug: articleSlug ? slugify(articleSlug) : slugify(articleTitle)
+        slug: articleSlug ? slugify(articleSlug) : slugify(articleTitle),
+        scheduledAt: newStatus === 'scheduled' ? new Date(scheduledAt).toISOString() : null,
       };
       if (editingId) {
         await updateArticle(editingId, payload);
@@ -215,7 +223,7 @@ export const Admin: React.FC = () => {
                 <ArrowLeft size={16} /> Voltar
               </Button>
               <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-mono uppercase text-text-muted">
-                Status: <span className={status === 'published' ? 'text-primary' : 'text-yellow-500'}>{status === 'published' ? 'Publicado' : 'Rascunho'}</span>
+                Status: <span className={status === 'published' ? 'text-primary' : status === 'scheduled' ? 'text-blue-400' : 'text-yellow-500'}>{status === 'published' ? 'Publicado' : status === 'scheduled' ? 'Agendado' : 'Rascunho'}</span>
               </div>
             </div>
             <div className="flex flex-col gap-8 mb-6">
@@ -319,6 +327,19 @@ export const Admin: React.FC = () => {
                     <input type="checkbox" className="w-4 h-4 rounded border-white/10 bg-black checked:bg-primary" checked={showAuthor} onChange={e => setShowAuthor(e.target.checked)} /> Mostrar Autor no Artigo
                   </label>
                 </div>
+                <div>
+                  <label className="block text-[10px] font-mono text-text-muted mb-2 uppercase tracking-widest">Publicação Agendada</label>
+                  <input
+                    type="datetime-local"
+                    className="w-full bg-black border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:border-primary focus:outline-none"
+                    value={scheduledAt}
+                    onChange={(e) => setScheduledAt(e.target.value)}
+                    min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
+                  />
+                  {scheduledAt && (
+                    <button type="button" onClick={() => setScheduledAt('')} className="mt-1 text-[9px] font-mono text-text-muted hover:text-white uppercase">[Limpar agendamento]</button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -329,6 +350,7 @@ export const Admin: React.FC = () => {
           <div className="mt-8 flex flex-col md:flex-row justify-end gap-4 border-t border-white/5 pt-8">
             <Button variant="ghost" onClick={() => setIsEditing(false)} className="font-mono text-xs uppercase tracking-widest text-slate-400">Descartar</Button>
             <Button variant="secondary" onClick={() => handleSave('draft')} className="font-mono text-xs uppercase tracking-widest text-white"><FileText size={16} className="mr-2" /> Salvar Rascunho</Button>
+            <Button variant="secondary" onClick={() => handleSave('scheduled')} disabled={!scheduledAt} className={`font-mono text-xs uppercase tracking-widest ${scheduledAt ? 'text-blue-400 border-blue-400/30' : 'text-slate-600'}`}><Clock size={16} className="mr-2" /> Agendar</Button>
             <Button className="gap-2 font-mono text-xs uppercase tracking-widest px-8" onClick={() => handleSave('published')}><Save size={16} /> {editingId ? 'Atualizar Artigo' : 'Publicar Agora'}</Button>
           </div>
         </div>
@@ -368,7 +390,18 @@ export const Admin: React.FC = () => {
                           ))}
                         </div>
                       </td>
-                      <td className="px-6 py-4"><span className={`inline-block rounded-md px-2 py-1 font-mono text-[10px] uppercase ${article.status === 'published' ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20'}`}>{article.status === 'published' ? 'Publicado' : 'Rascunho'}</span></td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1">
+                          <span className={`inline-block rounded-md px-2 py-1 font-mono text-[10px] uppercase ${article.status === 'published' ? 'bg-primary/10 text-primary border border-primary/20' : article.status === 'scheduled' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20'}`}>
+                            {article.status === 'published' ? 'Publicado' : article.status === 'scheduled' ? 'Agendado' : 'Rascunho'}
+                          </span>
+                          {article.status === 'scheduled' && article.scheduledAt && (
+                            <span className="font-mono text-[9px] text-blue-400/70">
+                              {new Date(article.scheduledAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          )}
+                        </div>
+                      </td>
                       <td className="px-6 py-4 font-mono text-[10px] text-text-muted">{article.date}</td>
                       <td className="px-6 py-4 text-right"><div className="flex items-center justify-end gap-2"><button onClick={() => handleEdit(article)} className="rounded-full p-2 text-text-muted hover:bg-white/10 hover:text-white transition-all"><Edit3 size={16} /></button><button onClick={() => handleDelete(article.id)} className="rounded-full p-2 text-text-muted hover:bg-red-500/20 hover:text-red-500 transition-all"><Trash2 size={16} /></button></div></td>
                     </tr>
