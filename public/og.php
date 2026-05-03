@@ -24,10 +24,10 @@ if (empty($slug)) {
     exit;
 }
 
-// Bot: busca artigo no Supabase
+// Bot: busca artigo no Supabase (publicado ou agendado)
 $apiUrl = SUPABASE_URL . '/rest/v1/articles_portaldpe'
     . '?slug=eq.' . urlencode($slug)
-    . '&status=eq.published'
+    . '&status=in.(published,scheduled)'
     . '&select=title,excerpt,image_url,slug'
     . '&limit=1';
 
@@ -61,9 +61,9 @@ function esc(string $str): string {
     return htmlspecialchars($str, ENT_QUOTES | ENT_HTML5, 'UTF-8');
 }
 
-$title       = esc($article['title'] ?? '');
-$description = esc($article['excerpt'] ?? '');
-$imageUrl    = esc($article['image_url'] ?? '');
+$title       = esc(trim($article['title'] ?? ''));
+$description = esc(trim($article['excerpt'] ?? ''));
+$imageUrl    = esc(trim($article['image_url'] ?? ''));
 $articleUrl  = esc($articleUrl);
 
 // Monta bloco de OG tags
