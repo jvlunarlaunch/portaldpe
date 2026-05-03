@@ -7,7 +7,6 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "start": "node server.js",
     "sitemap": "node scripts/generate-sitemap.js"
   },
   "dependencies": {
