@@ -2,11 +2,11 @@ Options -MultiViews
 RewriteEngine On
 
 # -------------------------------------------------------
-# 1. Bots de redes sociais em /article/* → og.php
-#    (para injetar Open Graph tags com dados do artigo)
+# 1. Todas as requisições de /article/* → og.php
+#    (injeta OG tags para bots; browsers recebem index.html
+#    com OG tags do artigo e o SPA hidrata normalmente)
 # -------------------------------------------------------
-RewriteCond %{HTTP_USER_AGENT} (whatsapp|facebookexternalhit|facebot|twitterbot|linkedinbot|telegrambot|slackbot|discordbot|googlebot|bingbot|applebot|ia_archiver|pinterest|vkshare|embedly) [NC]
-RewriteRule ^article/([a-z0-9\-_]+)/?$ /og.php?slug=$1 [L,QSA]
+RewriteRule ^article/([a-zA-Z0-9\-_]+)/?$ /og.php?slug=$1 [L,QSA]
 
 # -------------------------------------------------------
 # 2. SPA fallback: qualquer rota que não seja arquivo

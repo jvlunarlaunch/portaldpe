@@ -13,31 +13,13 @@
 define('SUPABASE_URL', 'https://dldsnfzqguoewnyxkxay.supabase.co');
 define('SUPABASE_ANON_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRsZHNuZnpxZ3VvZXdueXhreGF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU0NDEyOTksImV4cCI6MjA2MTAxNzI5OX0.3zsl_E60gN-Gfzv2T1hmYGyS0-xpxmwkPOMquNH1kpY');
 
-// Bots de redes sociais que leem OG tags
-$botPatterns = [
-    'whatsapp', 'facebookexternalhit', 'facebot', 'twitterbot',
-    'linkedinbot', 'telegrambot', 'slackbot', 'discordbot',
-    'googlebot', 'bingbot', 'applebot', 'ia_archiver',
-    'rogerbot', 'embedly', 'pinterest', 'vkshare',
-];
-
-$userAgent = strtolower($_SERVER['HTTP_USER_AGENT'] ?? '');
-$isBot = false;
-foreach ($botPatterns as $bot) {
-    if (str_contains($userAgent, $bot)) {
-        $isBot = true;
-        break;
-    }
-}
-
 // Pega o slug da URL: /article/meu-artigo → meu-artigo
 $slug = trim($_GET['slug'] ?? '');
-$slug = preg_replace('/[^a-z0-9\-_]/', '', $slug); // sanitiza
+$slug = preg_replace('/[^a-zA-Z0-9\-_]/', '', $slug); // sanitiza
 
 $indexPath = __DIR__ . '/index.html';
 
-if (!$isBot || empty($slug)) {
-    // Navegador normal: serve o SPA
+if (empty($slug)) {
     readfile($indexPath);
     exit;
 }
