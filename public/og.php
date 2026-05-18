@@ -51,10 +51,13 @@ if (!$article) {
     exit;
 }
 
-// Monta URL canônica do artigo
-$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+// Monta URL canônica do artigo e garante domínio completo
+$protocol = (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') 
+            || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') 
+            ? 'https' : 'http';
 $host = $_SERVER['HTTP_HOST'];
-$articleUrl = "{$protocol}://{$host}/article/{$slug}";
+$baseUrl = "{$protocol}://{$host}";
+$articleUrl = "{$baseUrl}/article/{$slug}";
 
 // Escapa valores para uso em HTML
 function esc(string $str): string {
@@ -63,7 +66,14 @@ function esc(string $str): string {
 
 $title       = esc(trim($article['title'] ?? ''));
 $description = esc(trim($article['excerpt'] ?? ''));
-$imageUrl    = esc(trim($article['image_url'] ?? ''));
+$imageUrl    = trim($article['image_url'] ?? '');
+
+// Garante que a imagem é absoluta
+if ($imageUrl && !preg_match('~^https?://~', $imageUrl)) {
+    $imageUrl = $baseUrl . '/' . ltrim($imageUrl, '/');
+}
+$imageUrl = esc($imageUrl);
+
 $articleUrl  = esc($articleUrl);
 
 // Monta bloco de OG tags
@@ -79,6 +89,7 @@ if ($imageUrl) {
     $ogTags .= <<<HTML
 
   <meta property="og:image" content="{$imageUrl}" />
+  <meta property="og:image:secure_url" content="{$imageUrl}" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:image:alt" content="{$title}" />
@@ -99,11 +110,17 @@ if ($imageUrl) {
 // Injeta no index.html
 $html = file_get_contents($indexPath);
 
-// Remove OG/Twitter tags padrão do index.html para evitar duplicatas
-$html = preg_replace('/<meta\s[^>]*(property="og:[^"]*"|name="twitter:[^"]*")[^>]*>\s*/i', '', $html);
+// Remove OG/Twitter tags padrão e outras meta tags que podem conflitar
+$patterns = [
+    '/<meta\s[^>]*(property|name)="(og:|twitter:)[^"]*"[^>]*>\s*/i',
+    '/<meta\s[^>]*name="description"[^>]*>\s*/i',
+    '/<title>[^<]*<\/title>/i'
+];
+$html = preg_replace($patterns, '', $html);
 
-$html = preg_replace('/<title>[^<]*<\/title>/', "<title>{$title} | Portal DPE</title>", $html);
-$html = str_replace('</head>', $ogTags . "\n</head>", $html);
+// Injeta as novas tags logo após o meta charset para máxima prioridade
+$newHeadContent = "<meta charset=\"UTF-8\" />\n  <title>{$title} | Portal DPE</title>\n{$ogTags}";
+$html = str_replace('<meta charset="UTF-8" />', $newHeadContent, $html);
 
 header('Content-Type: text/html; charset=utf-8');
 echo $html;
