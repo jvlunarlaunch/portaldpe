@@ -72,6 +72,16 @@ $imageUrl    = trim($article['image_url'] ?? '');
 if ($imageUrl && !preg_match('~^https?://~', $imageUrl)) {
     $imageUrl = $baseUrl . '/' . ltrim($imageUrl, '/');
 }
+// Detecta tipo MIME pela extensão
+$imageExt = strtolower(pathinfo(parse_url($imageUrl, PHP_URL_PATH), PATHINFO_EXTENSION));
+$imageMime = match($imageExt) {
+    'png'  => 'image/png',
+    'gif'  => 'image/gif',
+    'webp' => 'image/webp',
+    'svg'  => 'image/svg+xml',
+    default => 'image/jpeg',
+};
+
 $imageUrl = esc($imageUrl);
 
 $articleUrl  = esc($articleUrl);
@@ -92,7 +102,7 @@ if ($imageUrl) {
   <meta property="og:image:secure_url" content="{$imageUrl}" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:type" content="{$imageMime}" />
   <meta property="og:image:alt" content="{$title}" />
 HTML;
 }
