@@ -5,6 +5,7 @@ import { Button } from '../components/ui/Button';
 import { RichEditor } from '../components/ui/RichEditor';
 import { fetchArticles, fetchCategories, createArticle, updateArticle, deleteArticle, uploadImage, login as loginApi, logout as logoutApi } from '../api';
 import { Article, Author } from '../types';
+import { supabase } from '../supabase';
 
 const slugify = (text: string) => {
   return text
@@ -45,6 +46,33 @@ export const Admin: React.FC = () => {
   const [isMain, setIsMain] = useState(false);
   const [status, setStatus] = useState<'draft' | 'published' | 'scheduled'>('draft');
   const [scheduledAt, setScheduledAt] = useState<string>('');
+
+  // Restaura sessão ativa ao recarregar a página
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session?.user) return;
+      const { data: authorData } = await supabase
+        .from('authors_portaldpe')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+      if (authorData) {
+        setCurrentUser({
+          id: authorData.id,
+          name: authorData.name,
+          username: authorData.username,
+          bio: authorData.bio,
+          avatarUrl: authorData.avatar_url,
+        });
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) setCurrentUser(null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (currentUser) {

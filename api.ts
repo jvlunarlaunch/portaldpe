@@ -102,6 +102,10 @@ export const createAuthor = async (author: Partial<Author> & { password?: string
 };
 
 export const updateAuthor = async (id: string, author: Partial<Author> & { password?: string }) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+    if (user.id !== id) throw new Error('Forbidden');
+
     const updateData: any = {
         name: author.name,
         username: author.username,
@@ -174,13 +178,15 @@ export const fetchArticles = async (params: { category?: string, page?: number, 
 };
 
 export const fetchArticleById = async (id: string): Promise<Article | null> => {
+    const now = new Date().toISOString();
     const { data, error } = await supabase
         .from('articles_portaldpe')
         .select('*, article_categories(categories_portaldpe(name)), authors_portaldpe(*)')
         .eq('id', id)
-        .single();
+        .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
+        .maybeSingle();
 
-    if (error) return null;
+    if (error || !data) return null;
     return mapArticle(data);
 };
 
@@ -289,6 +295,13 @@ export const createArticle = async (article: Partial<Article>) => {
 };
 
 export const updateArticle = async (id: string, article: Partial<Article>) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    if (article.categories !== undefined && article.categories.length === 0) {
+        throw new Error('O artigo precisa ter ao menos uma categoria');
+    }
+
     const updateData: any = {
         title: article.title,
         slug: article.slug,
@@ -335,13 +348,28 @@ export const updateArticle = async (id: string, article: Partial<Article>) => {
 };
 
 export const deleteArticle = async (id: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
     const { error } = await supabase.from('articles_portaldpe').delete().eq('id', id);
     if (error) throw error;
 };
 
 export const uploadImage = async (file: File): Promise<{ url: string }> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Not authenticated');
+
+    const ALLOWED_TYPES: Record<string, string> = {
+        'image/jpeg': 'jpg',
+        'image/png': 'png',
+        'image/gif': 'gif',
+        'image/webp': 'webp',
+    };
+    if (!ALLOWED_TYPES[file.type]) throw new Error('Tipo de arquivo não permitido. Use JPG, PNG, GIF ou WebP.');
+    if (file.size > 10 * 1024 * 1024) throw new Error('Arquivo muito grande. Máximo: 10 MB.');
+
+    const ext = ALLOWED_TYPES[file.type];
+    const fileName = `${crypto.randomUUID()}.${ext}`;
     const filePath = `uploads/${fileName}`;
 
     const { error: uploadError } = await supabase.storage

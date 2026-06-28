@@ -8,7 +8,7 @@ dotenv.config({ path: '.env.local' });
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
-const DOMAIN = 'https://yourdomain.com'; // CHANGE THIS TO YOUR ACTUAL DOMAIN
+const DOMAIN = 'https://portaldpe.com.br';
 
 if (!supabaseUrl || !supabaseAnonKey) {
     console.error('Error: Supabase credentials not found in .env.local');
@@ -32,7 +32,6 @@ async function generateSitemap() {
         // 2. Define static routes
         const staticRoutes = [
             { url: '/', lastmod: new Date().toISOString() },
-            { url: '/admin', lastmod: new Date().toISOString() }, // Optional, you might want to exclude admin
         ];
 
         // 3. Combine with dynamic products

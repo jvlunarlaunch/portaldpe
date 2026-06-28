@@ -24,10 +24,11 @@ if (empty($slug)) {
     exit;
 }
 
-// Bot: busca artigo no Supabase (publicado ou agendado)
+// Bot: busca artigo no Supabase (publicado ou já passou da data de agendamento)
+$now = date('c'); // ISO 8601
 $apiUrl = SUPABASE_URL . '/rest/v1/articles_portaldpe'
     . '?slug=eq.' . urlencode($slug)
-    . '&status=in.(published,scheduled)'
+    . '&or=(status.eq.published,and(status.eq.scheduled,scheduled_at.lte.' . urlencode($now) . '))'
     . '&select=title,excerpt,image_url,slug'
     . '&limit=1';
 
@@ -51,12 +52,8 @@ if (!$article) {
     exit;
 }
 
-// Monta URL canônica do artigo e garante domínio completo
-$protocol = (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') 
-            || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') 
-            ? 'https' : 'http';
-$host = $_SERVER['HTTP_HOST'];
-$baseUrl = "{$protocol}://{$host}";
+// Domínio canônico fixo — não confia em HTTP_HOST para evitar Host Header Injection
+$baseUrl = 'https://portaldpe.com.br';
 $articleUrl = "{$baseUrl}/article/{$slug}";
 
 // Escapa valores para uso em HTML
@@ -68,7 +65,7 @@ $title       = esc(trim($article['title'] ?? ''));
 $description = esc(trim($article['excerpt'] ?? ''));
 $imageUrl    = trim($article['image_url'] ?? '');
 
-// Garante que a imagem é absoluta
+// Garante que a imagem usa o domínio canônico quando for relativa
 if ($imageUrl && !preg_match('~^https?://~', $imageUrl)) {
     $imageUrl = $baseUrl . '/' . ltrim($imageUrl, '/');
 }

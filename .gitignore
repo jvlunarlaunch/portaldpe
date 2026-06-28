@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Claude Code (may contain local secrets — service role key, etc.)
+.claude/
+
+# Env files (all variants)
+.env
+.env.*
+!.env.example
+!.env.local

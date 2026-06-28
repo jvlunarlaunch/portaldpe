@@ -251,6 +251,11 @@ export const RichEditor: React.FC<RichEditorProps> = ({ content, onChange, edita
             editor.chain().focus().extendMarkRange('link').unsetLink().run();
             return;
         }
+        const allowedProtocols = /^(https?:\/\/|mailto:|tel:)/i;
+        if (!allowedProtocols.test(url)) {
+            alert('URL inválida. Use https://, http://, mailto: ou tel:');
+            return;
+        }
         editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
     }, [editor]);
 
