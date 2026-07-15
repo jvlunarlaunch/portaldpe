@@ -3,7 +3,7 @@ import typography from '@tailwindcss/typography'
 
 const config: Config = {
     content: [
-        "./index.html",
+        "./app/**/*.{js,ts,jsx,tsx}",
         "./**/*.{js,ts,jsx,tsx}",
     ],
     darkMode: 'class',

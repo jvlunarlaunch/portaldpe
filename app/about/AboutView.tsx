@@ -1,24 +1,13 @@
+'use client';
+
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Flag, Users, Newspaper, Zap, Check, Heart, History, TrendingUp } from 'lucide-react';
-import { Helmet } from 'react-helmet-async';
-import { Button } from '../components/ui/Button';
-import { MembershipModal } from '../components/ui/MembershipModal';
+import { Shield, Flag, Users, Newspaper, Heart, TrendingUp } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { MembershipModal } from '@/components/ui/MembershipModal';
 
-export const About: React.FC = () => {
+export const AboutView: React.FC = () => {
   const [isMembershipOpen, setIsMembershipOpen] = React.useState(false);
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
-  };
 
   const pillars = [
     { icon: Shield, label: 'Valores', text: 'Defesa da família, da propriedade privada e da liberdade individual.' },
@@ -57,11 +46,6 @@ export const About: React.FC = () => {
 
   return (
     <div className="w-full bg-[#fbfbfd]">
-      <Helmet>
-        <title>Quem Somos | Portal DPE</title>
-        <meta name="description" content="Conheça a missão e os valores do maior portal conservador de Pernambuco: Portal DPE." />
-      </Helmet>
-
       {/* Hero Section */}
       <section className="pt-40 pb-24 px-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-1/3 h-full bg-azure-50/50 -skew-x-12 transform origin-top-right -z-10"></div>

@@ -1,14 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
-import { Search, X, Loader2, MessageSquare } from 'lucide-react';
-import { ArticleCard } from '../components/ui/ArticleCard';
-import { Hero } from '../components/ui/Hero';
-import { fetchArticles } from '../api';
-import { Article } from '../types';
-import { MembershipModal } from '../components/ui/MembershipModal';
+'use client';
 
-export const Home: React.FC = () => {
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { Search, X, Loader2, MessageSquare } from 'lucide-react';
+import { ArticleCard } from '@/components/ui/ArticleCard';
+import { Hero } from '@/components/ui/Hero';
+import { fetchArticles } from '@/api';
+import { Article } from '@/types';
+import { MembershipModal } from '@/components/ui/MembershipModal';
+
+export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState('Todos');
   const [searchQuery, setSearchQuery] = useState('');
   const [isMembershipOpen, setIsMembershipOpen] = useState(false);
@@ -31,7 +32,6 @@ export const Home: React.FC = () => {
     loadData();
   }, []);
 
-  // Extract unique categories and add 'Todos'
   // Extract unique categories and add 'Todos'
   const categoriesList = ['Todos', ...Array.from(new Set(articles.flatMap(a => a.categories || []))).filter(Boolean).sort()];
 
@@ -68,11 +68,6 @@ export const Home: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#fbfbfd]">
-      <Helmet>
-        <title>Portal DPE | Verdade e Liberdade</title>
-        <meta name="description" content="O maior portal conservador de Pernambuco. Compromisso com a verdade e os valores tradicionais do Portal DPE." />
-      </Helmet>
-
       <MembershipModal isOpen={isMembershipOpen} onClose={() => setIsMembershipOpen(false)} />
 
       <main className="w-full">
@@ -192,7 +187,7 @@ export const Home: React.FC = () => {
                 <h3 className="font-bold text-lg mb-6 text-slate-900">Mais Lidas</h3>
                 <div className="flex flex-col">
                   {trendingArticles.map((article, index) => (
-                    <Link to={`/article/${article.slug}`} key={article.id} className="flex gap-4 items-center py-4 border-b border-slate-100 group cursor-pointer hover:bg-slate-50 transition-colors px-2 -mx-2 rounded-lg">
+                    <Link href={`/article/${article.slug}/`} key={article.id} className="flex gap-4 items-center py-4 border-b border-slate-100 group cursor-pointer hover:bg-slate-50 transition-colors px-2 -mx-2 rounded-lg">
                       <span className="text-2xl md:text-3xl font-bold text-slate-200 group-hover:text-azure-300 transition-colors font-serif italic shrink-0 w-8">
                         {index + 1}
                       </span>
@@ -228,4 +223,4 @@ export const Home: React.FC = () => {
       </main>
     </div>
   );
-};
+}

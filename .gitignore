@@ -8,8 +8,8 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-dist
-dist-ssr
+.next
+out
 *.local
 
 # Editor directories and files
@@ -31,3 +31,12 @@ dist-ssr
 .env.*
 !.env.example
 !.env.local
+
+# Migração de banco (contém dumps com hashes de senha)
+transicao_novo_db/
+
+# Supabase CLI temp
+supabase/.temp/
+
+# Build antigo do Vite
+dist/

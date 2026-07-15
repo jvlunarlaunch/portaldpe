@@ -1,22 +1,19 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, Link, useLocation, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Helmet } from 'react-helmet-async';
-import { ArrowLeft, Clock, Calendar, Tag, Share2, Check, Loader2 } from 'lucide-react';
-import { fetchArticleBySlug, fetchRelatedArticles } from '../api';
-import { Article } from '../types';
-import { Button } from '../components/ui/Button';
-import { useLoading } from '../context/LoadingContext';
-import { ArticleCard } from '../components/ui/ArticleCard';
+'use client';
 
-export const ArticlePage: React.FC = () => {
-  const { slug } = useParams<{ slug: string }>();
-  const location = useLocation();
-  const navigate = useNavigate();
-  const { setIsNavigating } = useLoading();
-  const [article, setArticle] = useState<Article | null>(location.state?.preloadedArticle || null);
-  const [relatedArticles, setRelatedArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(!location.state?.preloadedArticle);
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { ArrowLeft, Clock, Share2, Check } from 'lucide-react';
+import { Article } from '@/types';
+import { Button } from '@/components/ui/Button';
+import { ArticleCard } from '@/components/ui/ArticleCard';
+
+interface ArticleViewProps {
+  article: Article;
+  relatedArticles: Partial<Article>[];
+}
+
+export const ArticleView: React.FC<ArticleViewProps> = ({ article, relatedArticles }) => {
   const [copied, setCopied] = useState(false);
 
   const handleShare = async () => {
@@ -24,9 +21,9 @@ export const ArticlePage: React.FC = () => {
     try {
       if (navigator.share) {
         await navigator.share({
-          title: article?.title,
-          text: article?.excerpt,
-          url: url,
+          title: article.title,
+          text: article.excerpt,
+          url,
         });
       } else {
         await navigator.clipboard.writeText(url);
@@ -40,39 +37,15 @@ export const ArticlePage: React.FC = () => {
 
   const handleWhatsAppShare = () => {
     const url = window.location.href;
-    const text = `${article?.title}\n\n${article?.excerpt}\n\n${url}`;
+    const text = `${article.title}\n\n${article.excerpt}\n\n${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
   };
 
   useEffect(() => {
-    const loadData = async () => {
-      if (!article || article.slug !== slug) {
-        setLoading(true);
-        if (slug) {
-          const fetchedArticle = await fetchArticleBySlug(slug);
-          setArticle(fetchedArticle);
-
-          if (fetchedArticle) {
-            const related = await fetchRelatedArticles(fetchedArticle.id);
-            setRelatedArticles(related as Article[]);
-          }
-        }
-        setLoading(false);
-      } else if (relatedArticles.length === 0 && article) {
-        const related = await fetchRelatedArticles(article.id);
-        setRelatedArticles(related as Article[]);
-      }
-      window.scrollTo(0, 0);
-    };
-    loadData();
-  }, [slug]);
-
-  useEffect(() => {
-    if (!article) return;
     const title = article.title;
 
     const milestones = [30, 60, 120];
-    const timers = milestones.map(seconds =>
+    const timers = milestones.map((seconds) =>
       setTimeout(() => {
         gtag('event', 'article_read_time', { article_title: title, seconds_spent: seconds });
       }, seconds * 1000)
@@ -94,52 +67,14 @@ export const ArticlePage: React.FC = () => {
       timers.forEach(clearTimeout);
       observer.disconnect();
     };
-  }, [article?.slug]);
+  }, [article.slug]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center pt-20 bg-white">
-        <Loader2 className="animate-spin text-azure-600" size={40} />
-      </div>
-    );
-  }
-
-  if (!article) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center pt-20 bg-white px-4 text-center">
-        <Helmet>
-          <title>Artigo não encontrado | Portal DPE</title>
-          <meta name="robots" content="noindex" />
-        </Helmet>
-        <h2 className="text-2xl font-bold mb-4 text-slate-900">Artigo não encontrado</h2>
-        <Link to="/"><Button>Voltar ao Início</Button></Link>
-      </div>
-    );
-  }
   return (
     <article className="min-h-screen w-full bg-white pt-32 md:pt-40 pb-24">
-      <Helmet>
-        <title>{article.title} | Portal DPE</title>
-        <meta name="description" content={article.excerpt} />
-        <meta property="og:site_name" content="Portal DPE" />
-        <meta property="og:type" content="article" />
-        <meta property="og:title" content={article.title} />
-        <meta property="og:description" content={article.excerpt} />
-        <meta property="og:url" content={typeof window !== 'undefined' ? window.location.href : ''} />
-        {article.imageUrl && <meta property="og:image" content={article.imageUrl} />}
-        {article.imageUrl && <meta property="og:image:width" content="1200" />}
-        {article.imageUrl && <meta property="og:image:height" content="630" />}
-        {article.imageUrl && <meta property="og:image:alt" content={article.title} />}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={article.title} />
-        <meta name="twitter:description" content={article.excerpt} />
-        {article.imageUrl && <meta name="twitter:image" content={article.imageUrl} />}
-      </Helmet>
-
       <div className="max-w-3xl mx-auto px-6">
         {/* Breadcrumb / Back button */}
         <div className="mb-8 flex justify-center md:justify-start">
-          <Link to="/">
+          <Link href="/">
             <button className="flex items-center gap-2 text-slate-400 hover:text-azure-600 transition-colors font-medium text-sm group">
               <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
               Voltar para as notícias
@@ -155,7 +90,7 @@ export const ArticlePage: React.FC = () => {
             className="inline-flex items-center gap-3 mb-6 justify-center md:justify-start"
           >
             <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-              {article.categories?.map(cat => (
+              {article.categories?.map((cat) => (
                 <span key={cat} className="px-3 py-1 rounded-full bg-azure-600 text-white text-xs font-bold tracking-widest uppercase">
                   {cat}
                 </span>
@@ -250,7 +185,7 @@ export const ArticlePage: React.FC = () => {
               {/* Botão copiar link / compartilhar nativo */}
               <Button
                 onClick={handleShare}
-                variant={copied ? "outline" : "outline"}
+                variant="outline"
                 className="gap-2"
               >
                 {copied ? (
@@ -293,10 +228,10 @@ export const ArticlePage: React.FC = () => {
           <div className="mt-24">
             <h3 className="text-2xl font-bold text-slate-900 mb-8 text-center">Leituras Relacionadas</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {relatedArticles.map(related => (
+              {relatedArticles.map((related) => (
                 <ArticleCard
                   key={related.id}
-                  article={related}
+                  article={related as Article}
                   variant="standard"
                 />
               ))}

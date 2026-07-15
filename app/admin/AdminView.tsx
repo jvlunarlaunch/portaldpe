@@ -1,11 +1,17 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { motion } from 'framer-motion';
 import { Lock, Edit3, Trash2, Plus, FileText, ArrowLeft, Save, Loader2, RefreshCw, Upload, Check, Clock } from 'lucide-react';
-import { Button } from '../components/ui/Button';
-import { RichEditor } from '../components/ui/RichEditor';
-import { fetchArticles, fetchCategories, createArticle, updateArticle, deleteArticle, uploadImage, login as loginApi, logout as logoutApi } from '../api';
-import { Article, Author } from '../types';
-import { supabase } from '../supabase';
+import { Button } from '@/components/ui/Button';
+import { fetchArticles, fetchCategories, createArticle, updateArticle, deleteArticle, uploadImage, login as loginApi, logout as logoutApi } from '@/api';
+import { Article, Author } from '@/types';
+import { supabase } from '@/supabase';
+
+const RichEditor = dynamic(() => import('@/components/ui/RichEditor').then((mod) => mod.RichEditor), {
+  ssr: false,
+});
 
 const slugify = (text: string) => {
   return text
@@ -19,7 +25,7 @@ const slugify = (text: string) => {
     .replace(/-+/g, '-');
 };
 
-export const Admin: React.FC = () => {
+export const AdminView: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<Author | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 

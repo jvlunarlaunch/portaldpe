@@ -1,11 +1,14 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MembershipModal } from '../ui/MembershipModal';
 
 export const Navbar: React.FC = () => {
-  const location = useLocation();
+  const pathname = usePathname();
   const [isMembershipOpen, setIsMembershipOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -18,8 +21,8 @@ export const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const isActive = (path: string) => location.pathname === path;
-  const isAdmin = location.pathname.startsWith('/admin');
+  const isActive = (path: string) => pathname === path;
+  const isAdmin = pathname.startsWith('/admin');
   const textColor = isAdmin && !scrolled ? 'text-white' : 'text-slate-900';
   const navTextColor = isAdmin && !scrolled ? 'text-slate-300 hover:text-white' : 'text-slate-500 hover:text-slate-900';
   const logoBg = isAdmin && !scrolled ? 'bg-white text-azure-600' : 'bg-azure-600 text-white';
@@ -35,7 +38,7 @@ export const Navbar: React.FC = () => {
             }`}
         >
           <Link
-            to="/"
+            href="/"
             onClick={() => setMobileMenuOpen(false)}
             className="cursor-pointer flex items-center gap-3 group relative z-50"
           >
@@ -53,13 +56,13 @@ export const Navbar: React.FC = () => {
           <nav className="hidden md:flex items-center gap-1 md:gap-4">
             <div className={`flex items-center rounded-full p-1 ${isAdmin && !scrolled ? 'bg-white/10 backdrop-blur-md border border-white/5' : 'bg-slate-100/50'}`}>
               <Link
-                to="/"
+                href="/"
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${isActive('/') ? 'bg-white shadow-sm text-slate-900' : navTextColor}`}
               >
                 Início
               </Link>
               <Link
-                to="/about"
+                href="/about"
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${isActive('/about') ? 'bg-white shadow-sm text-slate-900' : navTextColor}`}
               >
                 Quem Somos
@@ -96,14 +99,14 @@ export const Navbar: React.FC = () => {
           >
             <nav className="flex flex-col gap-6 text-center">
               <Link
-                to="/"
+                href="/"
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-2xl font-semibold text-slate-900 hover:text-azure-600 transition-colors"
               >
                 Início
               </Link>
               <Link
-                to="/about"
+                href="/about"
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-2xl font-semibold text-slate-900 hover:text-azure-600 transition-colors"
               >

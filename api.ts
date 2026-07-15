@@ -177,6 +177,17 @@ export const fetchArticles = async (params: { category?: string, page?: number, 
     return data.map(mapArticle);
 };
 
+export const fetchAllPublishedSlugs = async (): Promise<string[]> => {
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+        .from('articles_portaldpe')
+        .select('slug')
+        .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`);
+
+    if (error || !data) return [];
+    return data.map((r) => r.slug);
+};
+
 export const fetchArticleById = async (id: string): Promise<Article | null> => {
     const now = new Date().toISOString();
     const { data, error } = await supabase

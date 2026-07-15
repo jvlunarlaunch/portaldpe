@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+  repository_dispatch:
+    types: [content-updated]
+  schedule:
+    - cron: '*/20 * * * *'
 
 concurrency:
   group: deploy
@@ -28,8 +32,8 @@ jobs:
       - name: 🏗️ Build project
         run: npm run build
         env:
-          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
       - name: 🚀 Deploy to Hostinger via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -37,7 +41,7 @@ jobs:
           server: ftp.portaldpe.com.br
           username: u191607503.dpe
           password: ${{ secrets.FTP_PASSWORD }}
-          local-dir: ./dist/
+          local-dir: ./out/
           server-dir: /
           port: 21
           protocol: ftps

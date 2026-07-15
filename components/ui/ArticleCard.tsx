@@ -1,9 +1,9 @@
+'use client';
+
 import React from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import Link from 'next/link';
 import { Article } from '../../types';
-import { useLoading } from '../../context/LoadingContext';
-import { fetchArticleBySlug } from '../../api';
 
 interface ArticleCardProps {
   article: Article;
@@ -12,37 +12,13 @@ interface ArticleCardProps {
 }
 
 export const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'standard', className = '' }) => {
-  const navigate = useNavigate();
-  const { setIsNavigating } = useLoading();
-
-  const handleClick = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsNavigating(true);
-    try {
-      const startTime = Date.now();
-      const fetchedArticle = await fetchArticleBySlug(article.slug);
-      const endTime = Date.now();
-
-      if (endTime - startTime < 400) {
-        await new Promise(resolve => setTimeout(resolve, 400 - (endTime - startTime)));
-      }
-
-      navigate(`/article/${article.slug}`, {
-        state: { preloadedArticle: fetchedArticle }
-      });
-    } catch (error) {
-      console.error("Failed to pre-load article", error);
-      navigate(`/article/${article.slug}`);
-    } finally {
-      setIsNavigating(false);
-    }
-  };
+  const href = `/article/${article.slug}/`;
 
   if (variant === 'featured') {
     return (
-      <div
-        onClick={handleClick}
-        className={`group cursor-pointer relative overflow-hidden rounded-3xl h-full min-h-[400px] w-full ${className}`}
+      <Link
+        href={href}
+        className={`group cursor-pointer relative overflow-hidden rounded-3xl h-full min-h-[400px] w-full block ${className}`}
       >
         <div className="absolute inset-0 bg-slate-900/40 group-hover:bg-slate-900/30 transition-colors z-10"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent z-20"></div>
@@ -67,14 +43,14 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'st
             <span>{article.date}</span>
           </div>
         </div>
-      </div>
+      </Link>
     );
   }
 
   if (variant === 'compact') {
     return (
-      <div
-        onClick={handleClick}
+      <Link
+        href={href}
         className={`group cursor-pointer flex gap-3 md:gap-4 items-center ${className}`}
       >
         <div className="w-20 h-20 md:w-32 md:h-24 flex-shrink-0 overflow-hidden rounded-xl">
@@ -93,13 +69,13 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'st
             {article.title}
           </h3>
         </div>
-      </div>
+      </Link>
     );
   }
 
   return (
-    <div
-      onClick={handleClick}
+    <Link
+      href={href}
       className={`group cursor-pointer flex flex-col h-full bg-white transition-all duration-300 hover:-translate-y-1 ${className}`}
     >
       <div className="relative overflow-hidden rounded-3xl aspect-[3/2] mb-4">
@@ -146,6 +122,6 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'st
           )}
         </div>
       </div>
-    </div>
+    </Link>
   );
 };

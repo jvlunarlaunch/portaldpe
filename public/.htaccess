@@ -1,17 +1,7 @@
-Options -MultiViews
-RewriteEngine On
+ErrorDocument 404 /404.html
 
-# -------------------------------------------------------
-# 1. Todas as requisições de /article/* → og.php
-#    (injeta OG tags para bots; browsers recebem index.html
-#    com OG tags do artigo e o SPA hidrata normalmente)
-# -------------------------------------------------------
-RewriteRule ^article/([a-zA-Z0-9\-_]+)/?$ /og.php?slug=$1 [L,QSA]
-
-# -------------------------------------------------------
-# 2. SPA fallback: qualquer rota que não seja arquivo
-#    real → index.html (necessário para BrowserRouter)
-# -------------------------------------------------------
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ /index.html [L]
+<IfModule mod_headers.c>
+  <FilesMatch "\.(js|css)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
