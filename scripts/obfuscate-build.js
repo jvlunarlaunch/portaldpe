@@ -72,8 +72,18 @@ function main() {
       const result = JavaScriptObfuscator.obfuscate(code, obfuscatorOptions).getObfuscatedCode();
       writeFileSync(file, result, 'utf8');
     } catch (err) {
-      console.error(`Falha ao ofuscar ${file}:`, err.message);
-      process.exitCode = 1;
+      // "URI malformed": o encoding base64 do string array usa encodeURIComponent,
+      // que falha em strings com surrogates inválidos. Tenta sem encoding.
+      try {
+        const fallback = JavaScriptObfuscator.obfuscate(code, {
+          ...obfuscatorOptions,
+          stringArrayEncoding: [],
+        }).getObfuscatedCode();
+        writeFileSync(file, fallback, 'utf8');
+        console.warn(`Aviso: ${file} ofuscado sem stringArrayEncoding (${err.message}).`);
+      } catch (err2) {
+        console.warn(`Aviso: ${file} mantido sem ofuscação (${err2.message}).`);
+      }
     }
   }
 
