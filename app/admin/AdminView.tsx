@@ -20,9 +20,19 @@ const slugify = (text: string) => {
     .replace(/[̀-ͯ]/g, '')
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9 ]/g, '')
+    .replace(/[^a-z0-9 -]/g, '')
     .replace(/\s+/g, '-')
-    .replace(/-+/g, '-');
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+};
+
+// Converte um Date (ou ISO string) para o formato aceito por <input type="datetime-local">
+// usando o horário LOCAL do navegador — evita o deslocamento que .toISOString() introduz
+// (ela retorna UTC, mas o input datetime-local trata o valor como horário local).
+const toLocalDatetimeInputValue = (date: Date | string) => {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
 export const AdminView: React.FC = () => {
@@ -149,7 +159,7 @@ export const AdminView: React.FC = () => {
     setIsFeatured(!!article.featured);
     setIsMain(!!article.main);
     setStatus(article.status || 'draft');
-    setScheduledAt(article.scheduledAt ? article.scheduledAt.slice(0, 16) : '');
+    setScheduledAt(article.scheduledAt ? toLocalDatetimeInputValue(article.scheduledAt) : '');
     setIsEditing(true);
     window.scrollTo(0, 0);
   };
@@ -368,7 +378,7 @@ export const AdminView: React.FC = () => {
                     className="w-full bg-black border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:border-primary focus:outline-none"
                     value={scheduledAt}
                     onChange={(e) => setScheduledAt(e.target.value)}
-                    min={new Date(Date.now() + 60000).toISOString().slice(0, 16)}
+                    min={toLocalDatetimeInputValue(new Date(Date.now() + 60000))}
                   />
                   {scheduledAt && (
                     <button type="button" onClick={() => setScheduledAt('')} className="mt-1 text-[9px] font-mono text-text-muted hover:text-white uppercase">[Limpar agendamento]</button>
@@ -385,7 +395,7 @@ export const AdminView: React.FC = () => {
             <Button variant="ghost" onClick={() => setIsEditing(false)} className="font-mono text-xs uppercase tracking-widest text-slate-400">Descartar</Button>
             <Button variant="secondary" onClick={() => handleSave('draft')} className="font-mono text-xs uppercase tracking-widest text-white"><FileText size={16} className="mr-2" /> Salvar Rascunho</Button>
             <Button variant="secondary" onClick={() => handleSave('scheduled')} disabled={!scheduledAt} className={`font-mono text-xs uppercase tracking-widest ${scheduledAt ? 'text-blue-400 border-blue-400/30' : 'text-slate-600'}`}><Clock size={16} className="mr-2" /> Agendar</Button>
-            <Button className="gap-2 font-mono text-xs uppercase tracking-widest px-8" onClick={() => handleSave('published')}><Save size={16} /> {editingId ? 'Atualizar Artigo' : 'Publicar Agora'}</Button>
+            <Button className="gap-2 font-mono text-xs uppercase tracking-widest px-8" onClick={() => handleSave(editingId ? status : 'published')}><Save size={16} /> {editingId ? 'Atualizar Artigo' : 'Publicar Agora'}</Button>
           </div>
         </div>
       </div>
