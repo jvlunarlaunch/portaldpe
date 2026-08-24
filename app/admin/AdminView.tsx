@@ -212,7 +212,8 @@ export const AdminView: React.FC = () => {
       loadData();
     } catch (e) {
       console.error(e);
-      alert('Erro ao salvar artigo');
+      const message = e instanceof Error && e.message ? e.message : 'Erro ao salvar artigo';
+      alert(message);
     } finally {
       setLoading(false);
     }
