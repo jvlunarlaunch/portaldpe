@@ -261,6 +261,11 @@ export const fetchCategories = async (): Promise<{ id: number, name: string, slu
     return data;
 };
 
+// Postgres unique-violation (23505) on the `slug` column surfaces as an opaque 409
+// from PostgREST. Detect it so the UI can show a clear message instead of a generic one.
+const isDuplicateSlugError = (error: any): boolean =>
+    error?.code === '23505' && typeof error?.message === 'string' && error.message.includes('slug');
+
 export const createArticle = async (article: Partial<Article>) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
@@ -290,7 +295,12 @@ export const createArticle = async (article: Partial<Article>) => {
         scheduled_at: article.scheduledAt || null,
     }]).select().single();
 
-    if (error) throw error;
+    if (error) {
+        if (isDuplicateSlugError(error)) {
+            throw new Error(`Já existe um artigo com o slug "${slug}". Altere o título ou o slug e tente novamente.`);
+        }
+        throw error;
+    }
 
     // Insert category relationships
     const articleId = articleData.id;
@@ -335,7 +345,12 @@ export const updateArticle = async (id: string, article: Partial<Article>) => {
         .update(updateData)
         .eq('id', id);
 
-    if (error) throw error;
+    if (error) {
+        if (isDuplicateSlugError(error)) {
+            throw new Error(`Já existe outro artigo com o slug "${article.slug}". Altere o slug e tente novamente.`);
+        }
+        throw error;
+    }
 
     // Update categories if provided
     if (article.categories) {
@@ -387,7 +402,11 @@ export const uploadImage = async (file: File): Promise<{ url: string }> => {
         .from('blog-media')
         .upload(filePath, file);
 
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+        // Infra failures (5xx) sometimes return an HTML error page instead of JSON;
+        // surface a clear message instead of the SDK's raw parse error.
+        throw new Error(`Falha ao enviar imagem para o armazenamento: ${uploadError.message || 'serviço indisponível, tente novamente em instantes'}`);
+    }
 
     const { data } = supabase.storage
         .from('blog-media')
