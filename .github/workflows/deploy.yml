@@ -6,12 +6,16 @@ on:
       - main
   repository_dispatch:
     types: [content-updated]
+  workflow_dispatch:
   schedule:
     - cron: '*/20 * * * *'
 
 concurrency:
   group: deploy
   cancel-in-progress: true
+
+permissions:
+  contents: write
 
 jobs:
   build-and-deploy:
@@ -45,3 +49,9 @@ jobs:
           server-dir: /
           port: 21
           protocol: ftps
+
+      - name: 🔄 Keep workflow alive
+        uses: gautamkrishnar/keepalive-workflow@v2
+        if: always()
+        with:
+          time_elapsed: 45
