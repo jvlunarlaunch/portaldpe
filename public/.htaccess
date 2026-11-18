@@ -1,5 +1,24 @@
 ErrorDocument 404 /404.html
 
+# Endereço único para o Google: sempre https://portaldpe.com.br (sem www).
+# Evita que o mesmo artigo seja indexado em 4 versões (http/https, com/sem www).
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # http -> https (checa também X-Forwarded-Proto para não entrar em loop atrás de CDN/proxy)
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  RewriteRule ^ https://portaldpe.com.br%{REQUEST_URI} [L,R=301]
+
+  # www -> sem www
+  RewriteCond %{HTTP_HOST} ^www\.portaldpe\.com\.br$ [NC]
+  RewriteRule ^ https://portaldpe.com.br%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+<IfModule mod_mime.c>
+  AddType application/xml .xml
+</IfModule>
+
 <IfModule mod_headers.c>
   <FilesMatch "\.(js|css)$">
     Header set Cache-Control "public, max-age=31536000, immutable"

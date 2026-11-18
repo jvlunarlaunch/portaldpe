@@ -7,6 +7,9 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       { userAgent: '*', allow: '/', disallow: '/admin/' },
     ],
-    sitemap: 'https://portaldpe.com.br/sitemap.xml',
+    sitemap: [
+      'https://portaldpe.com.br/sitemap.xml',
+      'https://portaldpe.com.br/news-sitemap.xml',
+    ],
   };
 }

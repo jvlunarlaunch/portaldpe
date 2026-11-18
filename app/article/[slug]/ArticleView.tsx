@@ -2,18 +2,20 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
 import { ArrowLeft, Clock, Share2, Check } from 'lucide-react';
 import { Article } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { ArticleCard } from '@/components/ui/ArticleCard';
+import { categoryPath } from '@/lib/seo';
 
 interface ArticleViewProps {
   article: Article;
   relatedArticles: Partial<Article>[];
+  /** nome da categoria -> slug da URL /categoria/<slug>/ */
+  categorySlugs?: Record<string, string>;
 }
 
-export const ArticleView: React.FC<ArticleViewProps> = ({ article, relatedArticles }) => {
+export const ArticleView: React.FC<ArticleViewProps> = ({ article, relatedArticles, categorySlugs = {} }) => {
   const [copied, setCopied] = useState(false);
 
   const handleShare = async () => {
@@ -84,44 +86,40 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ article, relatedArticl
 
         {/* Header Info */}
         <div className="text-center md:text-left mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-3 mb-6 justify-center md:justify-start"
-          >
+          <div className="inline-flex items-center gap-3 mb-6 justify-center md:justify-start">
             <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-              {article.categories?.map((cat) => (
-                <span key={cat} className="px-3 py-1 rounded-full bg-azure-600 text-white text-xs font-bold tracking-widest uppercase">
-                  {cat}
-                </span>
-              ))}
+              {article.categories?.map((cat) =>
+                categorySlugs[cat] ? (
+                  <Link
+                    key={cat}
+                    href={categoryPath(categorySlugs[cat])}
+                    className="px-3 py-1 rounded-full bg-azure-600 hover:bg-azure-700 transition-colors text-white text-xs font-bold tracking-widest uppercase"
+                  >
+                    {cat}
+                  </Link>
+                ) : (
+                  <span key={cat} className="px-3 py-1 rounded-full bg-azure-600 text-white text-xs font-bold tracking-widest uppercase">
+                    {cat}
+                  </span>
+                )
+              )}
             </div>
             <span className="text-slate-500 text-xs font-medium tracking-wide uppercase flex items-center gap-1.5">
               <Clock size={12} />
               {article.readTime}
             </span>
-          </motion.div>
+          </div>
 
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 text-slate-900 leading-tight tracking-tight"
-          >
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-6 text-slate-900 leading-tight tracking-tight">
             {article.title}
-          </motion.h1>
+          </h1>
 
           {/* Subtitle / Excerpt */}
           <p className="text-xl md:text-2xl text-slate-500 font-normal leading-relaxed mb-8">
             {article.excerpt}
           </p>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="flex items-center justify-center md:justify-start gap-4"
-          >
+          <div className="flex items-center justify-center md:justify-start gap-4">
             {article.showAuthor && (
               article.author?.avatarUrl ? (
                 <img src={article.author.avatarUrl} alt={article.author.name} className="w-12 h-12 rounded-full border border-slate-200" />
@@ -136,22 +134,26 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ article, relatedArticl
                 {article.showAuthor ? (article.authorName || article.author?.name || 'Redação') : 'Redação Portal DPE'}
               </p>
               <p className="text-xs text-slate-500 capitalize">
-                {article.date}
+                {article.publishedAtISO ? (
+                  <time dateTime={article.publishedAtISO}>{article.date}</time>
+                ) : (
+                  article.date
+                )}
               </p>
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Main Image */}
         {article.imageUrl && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8 }}
-            className="w-full mb-16 rounded-3xl overflow-hidden shadow-xl shadow-slate-200"
-          >
-            <img src={article.imageUrl} alt={article.title} className="w-full h-auto object-cover" />
-          </motion.div>
+          <div className="w-full mb-16 rounded-3xl overflow-hidden shadow-xl shadow-slate-200">
+            <img
+              src={article.imageUrl}
+              alt={article.title}
+              className="w-full h-auto object-cover"
+              fetchPriority="high"
+            />
+          </div>
         )}
 
         {/* Content Body */}
