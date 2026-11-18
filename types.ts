@@ -11,6 +11,10 @@ export interface Article {
   main?: boolean;
   content?: string;
   updatedAt?: string;
+  /** ISO 8601 da data de publicação (para SEO / dados estruturados) */
+  publishedAtISO?: string;
+  /** ISO 8601 da última modificação (para SEO / sitemap) */
+  modifiedAtISO?: string;
   showThumbnail?: boolean;
   showAuthor?: boolean;
   author?: Author;

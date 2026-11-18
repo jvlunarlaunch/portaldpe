@@ -57,13 +57,9 @@ export const AboutView: React.FC = () => {
           >
             <img src="/logo.png" alt="Logo Portal DPE" className="w-full h-full object-contain" />
           </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-4xl md:text-6xl lg:text-7xl font-bold text-slate-900 mb-6 leading-tight max-w-4xl"
-          >
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-slate-900 mb-6 leading-tight max-w-4xl">
             Nossa missão é levar a <span className="text-azure-600 underline decoration-azure-100 underline-offset-8">vontade do povo</span> à frente.
-          </motion.h1>
+          </h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

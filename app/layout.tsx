@@ -4,15 +4,13 @@ import Script from 'next/script';
 import { BackgroundWrapper } from '@/components/layout/BackgroundWrapper';
 import { Navbar } from '@/components/layout/Navbar';
 import { PageViewTracker } from '@/components/layout/PageViewTracker';
+import { fetchActiveCategories } from '@/lib/categories';
+import { HOME_TITLE, SITE_DESCRIPTION, SITE_URL, categoryPath } from '@/lib/seo';
 import './globals.css';
-
-const SITE_URL = 'https://portaldpe.com.br';
-const SITE_DESCRIPTION =
-  'O maior portal conservador de Pernambuco. Compromisso com a verdade, defesa da família e os valores tradicionais.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: 'Portal DPE | Verdade e Liberdade',
+  title: HOME_TITLE,
   description: SITE_DESCRIPTION,
   authors: [{ name: 'Portal DPE' }],
   icons: {
@@ -21,19 +19,22 @@ export const metadata: Metadata = {
   openGraph: {
     siteName: 'Portal DPE',
     type: 'website',
-    title: 'Portal DPE | Verdade e Liberdade',
+    locale: 'pt_BR',
+    title: HOME_TITLE,
     description: SITE_DESCRIPTION,
     images: ['/logo.png'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Portal DPE | Verdade e Liberdade',
+    title: HOME_TITLE,
     description: SITE_DESCRIPTION,
     images: ['/logo.png'],
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const categories = await fetchActiveCategories();
+
   return (
     <html lang="pt-BR" className="light">
       <head>
@@ -75,6 +76,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   O maior portal conservador de Pernambuco. Compromisso com a verdade e os valores tradicionais do Portal DPE.
                 </p>
               </div>
+
+              {categories.length > 0 && (
+                <nav aria-label="Editorias" className="flex flex-col items-center md:items-start">
+                  <span className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Editorias</span>
+                  <ul className="flex flex-wrap justify-center md:justify-start gap-x-5 gap-y-2 max-w-sm">
+                    {categories.map((c) => (
+                      <li key={c.slug}>
+                        <a href={categoryPath(c.slug)} className="text-sm text-slate-500 hover:text-azure-600 transition-colors">
+                          {c.name}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+              )}
 
               <div className="flex flex-col items-center md:items-end">
                 <div className="text-center md:text-right">

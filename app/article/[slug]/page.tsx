@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { fetchAllPublishedSlugs, fetchArticleBySlug, fetchRelatedArticles } from '@/api';
+import { fetchAllPublishedForSitemap, fetchArticleBySlug, fetchRelatedArticles } from '@/api';
+import { fetchCategorySlugMap } from '@/lib/categories';
+import { SITE_URL, articleJsonLd, articlePath, authorLabel, buildDescription, jsonLdString } from '@/lib/seo';
 import { ArticleView } from './ArticleView';
 
 export async function generateStaticParams() {
-  const slugs = await fetchAllPublishedSlugs();
-  return slugs.map((slug) => ({ slug }));
+  const entries = await fetchAllPublishedForSitemap();
+  return entries.map(({ slug }) => ({ slug }));
 }
 
 export async function generateMetadata({
@@ -23,27 +25,36 @@ export async function generateMetadata({
     };
   }
 
-  const url = `https://portaldpe.com.br/article/${article.slug}/`;
+  const url = `${SITE_URL}${articlePath(article.slug)}`;
+  const description = buildDescription(article);
+  const author = authorLabel(article);
 
   return {
     title: `${article.title} | Portal DPE`,
-    description: article.excerpt,
+    description,
     alternates: { canonical: url },
+    authors: [{ name: author || 'Redação Portal DPE' }],
+    robots: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
     openGraph: {
       siteName: 'Portal DPE',
       type: 'article',
+      locale: 'pt_BR',
       title: article.title,
-      description: article.excerpt,
+      description,
       url,
+      publishedTime: article.publishedAtISO,
+      modifiedTime: article.modifiedAtISO,
+      section: article.categories?.[0],
+      authors: author ? [author] : undefined,
       images: article.imageUrl
         ? [{ url: article.imageUrl, width: 1200, height: 630, alt: article.title }]
-        : undefined,
+        : ['/logo.png'],
     },
     twitter: {
       card: 'summary_large_image',
       title: article.title,
-      description: article.excerpt,
-      images: article.imageUrl ? [article.imageUrl] : undefined,
+      description,
+      images: article.imageUrl ? [article.imageUrl] : ['/logo.png'],
     },
   };
 }
@@ -60,7 +71,18 @@ export default async function ArticlePage({
     notFound();
   }
 
-  const relatedArticles = await fetchRelatedArticles(article.id);
+  const [relatedArticles, categorySlugs] = await Promise.all([
+    fetchRelatedArticles(article.id),
+    fetchCategorySlugMap(),
+  ]);
 
-  return <ArticleView article={article} relatedArticles={relatedArticles} />;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdString(articleJsonLd(article, categorySlugs)) }}
+      />
+      <ArticleView article={article} relatedArticles={relatedArticles} categorySlugs={categorySlugs} />
+    </>
+  );
 }

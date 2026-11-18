@@ -1,7 +1,14 @@
 import { supabase } from './supabase';
 import { Article, Author } from './types';
 
-// Map database column names to frontend property names
+// Data de publicação real: artigos agendados entram no ar em scheduled_at, não em created_at.
+const publishedAtISO = (dbArticle: any): string => {
+    const raw = dbArticle.status === 'scheduled' && dbArticle.scheduled_at
+        ? dbArticle.scheduled_at
+        : dbArticle.created_at;
+    return new Date(raw).toISOString();
+};
+
 // Map database column names to frontend property names
 const mapArticle = (dbArticle: any): Article => ({
     id: dbArticle.id.toString(),
@@ -15,6 +22,10 @@ const mapArticle = (dbArticle: any): Article => ({
     readTime: dbArticle.read_time,
     date: new Date(dbArticle.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).replace('.', ''),
     updatedAt: dbArticle.updated_at ? new Date(dbArticle.updated_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }).replace('.', '') : undefined,
+    publishedAtISO: publishedAtISO(dbArticle),
+    modifiedAtISO: dbArticle.updated_at
+        ? new Date(dbArticle.updated_at).toISOString()
+        : publishedAtISO(dbArticle),
     imageUrl: dbArticle.image_url,
     featured: !!dbArticle.featured,
     main: !!dbArticle.main,
@@ -188,7 +199,50 @@ export const fetchAllPublishedSlugs = async (): Promise<string[]> => {
     return data.map((r) => r.slug);
 };
 
-export const fetchArticleById = async (id: string): Promise<Article | null> => {
+export interface SitemapEntry {
+    slug: string;
+    publishedAt: string;
+    modifiedAt: string;
+    title: string;
+}
+
+/**
+ * Lista TODOS os artigos publicados (paginando de 1000 em 1000), só com os campos
+ * necessários para sitemaps. fetchArticles() tem limite padrão de 100 e deixaria
+ * artigos antigos de fora do sitemap.
+ */
+export const fetchAllPublishedForSitemap = async (): Promise<SitemapEntry[]> => {
+    const now = new Date().toISOString();
+    const pageSize = 1000;
+    const all: SitemapEntry[] = [];
+
+    for (let from = 0; ; from += pageSize) {
+        const { data, error } = await supabase
+            .from('articles_portaldpe')
+            .select('slug, title, status, created_at, updated_at, scheduled_at')
+            .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
+            .order('created_at', { ascending: false })
+            .range(from, from + pageSize - 1);
+
+        if (error || !data) break;
+
+        for (const r of data) {
+            const publishedAt = publishedAtISO(r);
+            all.push({
+                slug: r.slug,
+                title: r.title,
+                publishedAt,
+                modifiedAt: r.updated_at ? new Date(r.updated_at).toISOString() : publishedAt,
+            });
+        }
+
+        if (data.length < pageSize) break;
+    }
+
+    return all;
+};
+
+export const fetchArticleById =async (id: string): Promise<Article | null> => {
     const now = new Date().toISOString();
     const { data, error } = await supabase
         .from('articles_portaldpe')
