@@ -9,14 +9,28 @@ export interface CategoryInfo {
 /**
  * Categorias que têm ao menos um artigo publicado, com o slug usado na URL
  * (/categoria/<slug>/). Usa a coluna `slug` da tabela quando existir; senão
- * gera a partir do nome. Executado só no build.
+ * gera a partir do nome.
  */
-let cache: Promise<CategoryInfo[]> | null = null;
+// O servidor fica no ar por dias, então o cache não pode ser eterno: guarda o
+// resultado por 60 s para não repetir as consultas em cada página, mas pega
+// editorias novas logo depois.
+const CACHE_TTL_MS = 60_000;
+let cache: { at: number; promise: Promise<CategoryInfo[]> } | null = null;
 
 export const fetchActiveCategories = (): Promise<CategoryInfo[]> => {
-  // Cache por processo de build: evita repetir as mesmas consultas em cada página.
-  if (!cache) cache = loadActiveCategories();
-  return cache;
+  if (!cache || Date.now() - cache.at > CACHE_TTL_MS) {
+    const promise = loadActiveCategories().catch((err) => {
+      cache = null;
+      throw err;
+    });
+    cache = { at: Date.now(), promise };
+  }
+  return cache.promise;
+};
+
+/** Descarta o cache (chamado pelo /api/revalidate/). */
+export const clearCategoriesCache = () => {
+  cache = null;
 };
 
 const loadActiveCategories = async (): Promise<CategoryInfo[]> => {

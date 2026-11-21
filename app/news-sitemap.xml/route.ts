@@ -1,8 +1,8 @@
 import { fetchAllPublishedForSitemap } from '@/api';
 import { SITE_URL, articlePath } from '@/lib/seo';
 
-// Gerado no build (o site é exportado como estático).
-export const dynamic = 'force-static';
+// Refeito no máximo a cada 5 min e na hora via /api/revalidate/.
+export const revalidate = 300;
 
 const escapeXml = (s: string) =>
   s
@@ -14,7 +14,7 @@ const escapeXml = (s: string) =>
 
 /**
  * Sitemap de notícias (formato Google News): só artigos dos últimos 2 dias,
- * como exige o Google. Atualizado a cada deploy (a cada 20 min pelo workflow).
+ * como exige o Google. Atualizado quando um artigo muda (/api/revalidate/) ou a cada 5 min.
  */
 export async function GET() {
   const articles = await fetchAllPublishedForSitemap();

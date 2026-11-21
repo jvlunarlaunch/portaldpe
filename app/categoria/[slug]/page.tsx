@@ -6,7 +6,13 @@ import { ArticleCard } from '@/components/ui/ArticleCard';
 import { fetchActiveCategories } from '@/lib/categories';
 import { SITE_URL, categoryPath, jsonLdString } from '@/lib/seo';
 
-export const dynamicParams = false;
+// ISR: a página fica em cache e é refeita no máximo a cada 5 min; quando um
+// artigo muda, /api/revalidate/ invalida na hora. O timer também cobre os
+// artigos agendados, que entram no ar sozinhos quando chega o scheduled_at.
+export const revalidate = 300;
+
+// Editorias novas são geradas na primeira visita (slug inexistente -> 404).
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
   const categories = await fetchActiveCategories();

@@ -3,7 +3,7 @@ import { fetchAllPublishedForSitemap } from '@/api';
 import { fetchActiveCategories } from '@/lib/categories';
 import { SITE_URL, articlePath, categoryPath } from '@/lib/seo';
 
-export const dynamic = 'force-static';
+export const revalidate = 300;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [articles, categories] = await Promise.all([

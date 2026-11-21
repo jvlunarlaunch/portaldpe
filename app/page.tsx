@@ -18,7 +18,11 @@ export const metadata: Metadata = {
   },
 };
 
-// Roda no build (GitHub Actions): a lista de notícias já sai no HTML estático.
+// ISR: a página fica em cache e é refeita no máximo a cada 5 min; quando um
+// artigo muda, /api/revalidate/ invalida na hora. O timer também cobre os
+// artigos agendados, que entram no ar sozinhos quando chega o scheduled_at.
+export const revalidate = 300;
+
 export default async function HomePage() {
   const articles = await fetchArticles();
 

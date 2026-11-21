@@ -5,6 +5,14 @@ import { fetchCategorySlugMap } from '@/lib/categories';
 import { SITE_URL, articleJsonLd, articlePath, authorLabel, buildDescription, jsonLdString } from '@/lib/seo';
 import { ArticleView } from './ArticleView';
 
+// ISR: a página fica em cache e é refeita no máximo a cada 5 min; quando um
+// artigo muda, /api/revalidate/ invalida na hora. O timer também cobre os
+// artigos agendados, que entram no ar sozinhos quando chega o scheduled_at.
+export const revalidate = 300;
+
+// Artigos que não existiam no build são gerados na primeira visita.
+export const dynamicParams = true;
+
 export async function generateStaticParams() {
   const entries = await fetchAllPublishedForSitemap();
   return entries.map(({ slug }) => ({ slug }));
