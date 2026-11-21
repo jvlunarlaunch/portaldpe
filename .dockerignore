@@ -1,0 +1,14 @@
+.git
+.github
+node_modules
+.next
+out
+dist
+.env
+.env.*
+.claude
+transicao_novo_db
+supabase
+scripts
+deploy
+*.md

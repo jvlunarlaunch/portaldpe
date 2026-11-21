@@ -1,0 +1,13 @@
+# /etc/caddy/Caddyfile na VPS.
+# O Caddy emite e renova o certificado HTTPS sozinho assim que o DNS de
+# portaldpe.com.br apontar para a VPS. Só responde para estes domínios: o
+# Chatwoot (3000) e a Evolution API (8080) não passam por aqui.
+
+portaldpe.com.br {
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:3100
+}
+
+www.portaldpe.com.br {
+	redir https://portaldpe.com.br{uri} permanent
+}

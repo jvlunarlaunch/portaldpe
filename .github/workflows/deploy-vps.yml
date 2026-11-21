@@ -1,0 +1,58 @@
+name: Deploy to VPS
+
+# Só código dispara deploy. Conteúdo novo não precisa de build: o Supabase
+# chama /api/revalidate/ e o servidor atualiza as páginas na hora.
+on:
+  push:
+    branches:
+      - main
+      - vps-deploy
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-vps
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Conferir segredos
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          if [ -z "$VPS_HOST" ] || [ -z "$VPS_SSH_KEY" ]; then
+            echo "::error::Configure os segredos VPS_HOST e VPS_SSH_KEY no repositório."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - name: Build da imagem
+        run: |
+          TAG="portaldpe:${GITHUB_SHA::7}"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          docker build \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL="${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" \
+            --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY="${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
+            -t "$TAG" .
+          docker save "$TAG" | gzip -1 > portaldpe-image.tar.gz
+          ls -lh portaldpe-image.tar.gz
+
+      - name: Preparar SSH
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Enviar e trocar o container
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          SSH="ssh -i ~/.ssh/deploy portaldpe@$VPS_HOST"
+          scp -i ~/.ssh/deploy portaldpe-image.tar.gz deploy/deploy.sh "portaldpe@$VPS_HOST:~/"
+          $SSH "bash ~/deploy.sh '$TAG'"
