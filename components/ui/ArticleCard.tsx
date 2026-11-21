@@ -1,17 +1,19 @@
-'use client';
-
 import React from 'react';
-import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { Article } from '../../types';
+import { SiteImage } from './SiteImage';
 
 interface ArticleCardProps {
   article: Article;
   variant?: 'standard' | 'compact' | 'featured' | 'minimal';
   className?: string;
+  /** Imagem principal da página (LCP): carrega primeiro, sem lazy loading. */
+  priority?: boolean;
 }
 
-export const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'standard', className = '' }) => {
+// Sem 'use client': na página de editoria o card sai só como HTML, sem
+// JavaScript. Dentro de componentes de cliente (home) ele continua funcionando.
+export const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'standard', className = '', priority = false }) => {
   const href = `/article/${article.slug}/`;
 
   if (variant === 'featured') {
@@ -22,10 +24,14 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'st
       >
         <div className="absolute inset-0 bg-slate-900/40 group-hover:bg-slate-900/30 transition-colors z-10"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent z-20"></div>
-        <img
+        <SiteImage
           src={article.imageUrl}
           alt={article.title}
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+          fill
+          sizes="(min-width: 1280px) 850px, (min-width: 1024px) 66vw, 100vw"
+          preload={priority}
+          fetchPriority={priority ? 'high' : undefined}
+          className="object-cover transition-transform duration-1000 group-hover:scale-105"
         />
         <div className="absolute bottom-0 left-0 p-6 md:p-8 z-30 w-full md:w-3/4">
           <span className="inline-block px-3 py-1 bg-azure-600 text-white text-[10px] md:text-xs font-bold uppercase tracking-widest rounded-full mb-3 md:mb-4 shadow-lg shadow-azure-900/20">
@@ -53,11 +59,13 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'st
         href={href}
         className={`group cursor-pointer flex gap-3 md:gap-4 items-center ${className}`}
       >
-        <div className="w-20 h-20 md:w-32 md:h-24 flex-shrink-0 overflow-hidden rounded-xl">
-          <img
+        <div className="relative w-20 h-20 md:w-32 md:h-24 flex-shrink-0 overflow-hidden rounded-xl">
+          <SiteImage
             src={article.imageUrl}
             alt={article.title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            fill
+            sizes="128px"
+            className="object-cover transition-transform duration-500 group-hover:scale-110"
           />
         </div>
         <div className="flex flex-col flex-grow min-w-0">
@@ -86,10 +94,14 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'st
             </span>
           ))}
         </div>
-        <img
+        <SiteImage
           src={article.imageUrl}
           alt={article.title}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+          fill
+          sizes="(min-width: 1280px) 400px, (min-width: 768px) 50vw, 100vw"
+          preload={priority}
+          fetchPriority={priority ? 'high' : undefined}
+          className="object-cover transition-transform duration-700 group-hover:scale-105"
         />
       </div>
 
@@ -109,7 +121,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({ article, variant = 'st
           {article.showAuthor ? (
             <>
               {article.author?.avatarUrl ? (
-                <img src={article.author.avatarUrl} alt={article.author.name} className="w-6 h-6 rounded-full" />
+                <SiteImage src={article.author.avatarUrl} alt={article.author.name} width={24} height={24} className="w-6 h-6 rounded-full object-cover" />
               ) : (
                 <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-400">
                   {article.author?.name?.charAt(0) || 'D'}

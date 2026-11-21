@@ -6,6 +6,7 @@ import { ArrowLeft, Clock, Share2, Check } from 'lucide-react';
 import { Article } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { ArticleCard } from '@/components/ui/ArticleCard';
+import { SiteImage } from '@/components/ui/SiteImage';
 import { categoryPath } from '@/lib/seo';
 
 interface ArticleViewProps {
@@ -122,7 +123,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ article, relatedArticl
           <div className="flex items-center justify-center md:justify-start gap-4">
             {article.showAuthor && (
               article.author?.avatarUrl ? (
-                <img src={article.author.avatarUrl} alt={article.author.name} className="w-12 h-12 rounded-full border border-slate-200" />
+                <SiteImage src={article.author.avatarUrl} alt={article.author.name} width={48} height={48} className="w-12 h-12 rounded-full border border-slate-200 object-cover" />
               ) : (
                 <div className="w-12 h-12 rounded-full bg-azure-100 flex items-center justify-center font-bold text-azure-700">
                   {article.author?.name?.charAt(0) || 'D'}
@@ -147,11 +148,15 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ article, relatedArticl
         {/* Main Image */}
         {article.imageUrl && (
           <div className="w-full mb-16 rounded-3xl overflow-hidden shadow-xl shadow-slate-200">
-            <img
+            <SiteImage
               src={article.imageUrl}
               alt={article.title}
-              className="w-full h-auto object-cover"
+              width={1200}
+              height={675}
+              sizes="(min-width: 768px) 720px, 100vw"
+              preload
               fetchPriority="high"
+              className="w-full h-auto object-cover"
             />
           </div>
         )}
@@ -209,7 +214,7 @@ export const ArticleView: React.FC<ArticleViewProps> = ({ article, relatedArticl
           {article.showAuthor && (
             <div className="w-full bg-slate-50 rounded-3xl p-8 flex flex-col md:flex-row items-center md:items-start gap-6 mt-8">
               {article.author?.avatarUrl ? (
-                <img src={article.author.avatarUrl} alt={article.author.name} className="w-20 h-20 rounded-full shadow-lg" />
+                <SiteImage src={article.author.avatarUrl} alt={article.author.name} width={80} height={80} className="w-20 h-20 rounded-full shadow-lg object-cover" />
               ) : (
                 <div className="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center text-2xl font-bold text-slate-400">
                   {article.author?.name?.charAt(0) || 'D'}

@@ -30,6 +30,7 @@ export const Hero: React.FC<HeroProps> = ({ articles, onOpenMembership }) => {
                             article={mainPost}
                             variant="featured"
                             className="h-full"
+                            priority
                         />
                     </div>
 

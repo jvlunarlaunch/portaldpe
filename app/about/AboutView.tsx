@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Shield, Flag, Users, Newspaper, Heart, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -55,7 +56,7 @@ export const AboutView: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             className="w-20 h-20 rounded-2xl shadow-xl shadow-azure-600/20 mb-8 overflow-hidden"
           >
-            <img src="/logo.png" alt="Logo Portal DPE" className="w-full h-full object-contain" />
+            <Image src="/logo.png" alt="Logo Portal DPE" width={80} height={80} loading="eager" className="w-full h-full object-contain" />
           </motion.div>
           <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-slate-900 mb-6 leading-tight max-w-4xl">
             Nossa missão é levar a <span className="text-azure-600 underline decoration-azure-100 underline-offset-8">vontade do povo</span> à frente.

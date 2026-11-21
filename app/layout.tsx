@@ -1,12 +1,26 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import Script from 'next/script';
+import Image from 'next/image';
+import localFont from 'next/font/local';
 import { BackgroundWrapper } from '@/components/layout/BackgroundWrapper';
 import { Navbar } from '@/components/layout/Navbar';
 import { PageViewTracker } from '@/components/layout/PageViewTracker';
 import { fetchActiveCategories } from '@/lib/categories';
 import { HOME_TITLE, SITE_DESCRIPTION, SITE_URL, categoryPath } from '@/lib/seo';
 import './globals.css';
+
+// Inter servida pelo próprio site (sem pedido ao Google Fonts bloqueando a
+// renderização). Só é baixada se algum texto usar a fonte, por isso sem preload.
+// As antigas Inter Tight e JetBrains Mono não eram usadas em nenhum lugar.
+const inter = localFont({
+  src: '../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2',
+  weight: '100 900',
+  style: 'normal',
+  display: 'swap',
+  preload: false,
+  variable: '--font-inter',
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -36,14 +50,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const categories = await fetchActiveCategories();
 
   return (
-    <html lang="pt-BR" className="light">
+    <html lang="pt-BR" className={`light ${inter.variable}`}>
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Inter+Tight:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
-          rel="stylesheet"
-        />
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-XBCNSFN71F"
           strategy="afterInteractive"
@@ -69,7 +77,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
               <div className="flex flex-col items-center md:items-start">
                 <div className="flex items-center gap-2 mb-4">
-                  <img src="/logo.png" alt="Logo Portal DPE" className="w-8 h-8 rounded-full object-contain shadow-lg shadow-azure-500/20" />
+                  <Image src="/logo.png" alt="Logo Portal DPE" width={32} height={32} className="w-8 h-8 rounded-full object-contain shadow-lg shadow-azure-500/20" />
                   <span className="font-bold text-slate-800">Portal DPE</span>
                 </div>
                 <p className="text-slate-500 text-sm max-w-xs text-center md:text-left">
