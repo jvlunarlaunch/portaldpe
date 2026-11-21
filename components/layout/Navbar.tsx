@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -42,8 +43,11 @@ export const Navbar: React.FC = () => {
             onClick={() => setMobileMenuOpen(false)}
             className="cursor-pointer flex items-center gap-3 group relative z-50"
           >
-            <img
+            <Image
               src="/logo.png"
+              width={40}
+              height={40}
+              loading="eager"
               alt="Logo Portal DPE"
               className={`transition-all duration-500 rounded-full object-contain shadow-lg shadow-azure-500/20 ${scrolled ? 'w-8 h-8' : 'w-10 h-10'}`}
             />
