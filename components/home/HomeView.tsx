@@ -8,14 +8,16 @@ import { Hero } from '@/components/ui/Hero';
 import { fetchArticles } from '@/api';
 import { Article } from '@/types';
 import { MembershipModal } from '@/components/ui/MembershipModal';
+import { categoryPath } from '@/lib/seo';
 
 interface HomeViewProps {
   /** Artigos buscados no build: já saem no HTML, visíveis para o Google. */
   initialArticles: Article[];
+  /** Editorias com artigos: viram links para /categoria/<slug>/. */
+  categories?: { name: string; slug: string }[];
 }
 
-export function HomeView({ initialArticles }: HomeViewProps) {
-  const [selectedCategory, setSelectedCategory] = useState('Todos');
+export function HomeView({ initialArticles, categories = [] }: HomeViewProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isMembershipOpen, setIsMembershipOpen] = useState(false);
 
@@ -35,18 +37,11 @@ export function HomeView({ initialArticles }: HomeViewProps) {
     };
   }, []);
 
-  // Extract unique categories and add 'Todos'
-  const categoriesList = ['Todos', ...Array.from(new Set(articles.flatMap(a => a.categories || []))).filter(Boolean).sort()];
-
-  const filteredArticles = articles.filter(article => {
-    const matchesCategory = selectedCategory === 'Todos' || (article.categories && article.categories.includes(selectedCategory));
-
-    const matchesSearch =
-      article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      article.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
-
-    return matchesCategory && matchesSearch;
-  });
+  const query = searchQuery.toLowerCase();
+  const filteredArticles = articles.filter(article =>
+    article.title.toLowerCase().includes(query) ||
+    (article.excerpt || '').toLowerCase().includes(query)
+  );
 
   // Featured articles for Hero
   const featuredArticles = articles.filter(a => a.main).slice(0, 3);
@@ -54,12 +49,13 @@ export function HomeView({ initialArticles }: HomeViewProps) {
   const heroArticles = featuredArticles.length > 0 ? featuredArticles : articles.slice(0, 3);
 
   // Feed articles (excluding hero articles if on homepage/All)
-  const feedArticles = selectedCategory === 'Todos' && !searchQuery
+  const feedArticles = !searchQuery
     ? filteredArticles.filter(a => !heroArticles.find(h => h.id === a.id))
     : filteredArticles;
 
   const opinionArticles = articles.filter(a => a.categories?.some(c => c.toLowerCase() === 'opinião' || c.toLowerCase() === 'coluna')).slice(0, 5);
   const trendingArticles = articles.slice(0, 5);
+  const opinionCategory = categories.find(c => ['opinião', 'coluna'].includes(c.name.toLowerCase()));
 
   return (
     <div className="min-h-screen bg-[#fbfbfd]">
@@ -68,29 +64,30 @@ export function HomeView({ initialArticles }: HomeViewProps) {
       <div className="w-full">
         <h1 className="sr-only">Portal DPE: notícias e política de Pernambuco</h1>
         {/* Hero Section - Only on main view with no filter/search */}
-        {selectedCategory === 'Todos' && !searchQuery && (
+        {!searchQuery && (
           <Hero
             articles={heroArticles}
             onOpenMembership={() => setIsMembershipOpen(true)}
           />
         )}
 
-        <section className={`max-w-7xl mx-auto px-4 md:px-6 pb-24 ${selectedCategory !== 'Todos' || searchQuery ? "pt-32 md:pt-40" : ""}`}>
+        <section className={`max-w-7xl mx-auto px-4 md:px-6 pb-24 ${searchQuery ? "pt-32 md:pt-40" : ""}`}>
 
           {/* Category Nav & Search */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 md:mb-12 border-b border-slate-200 pb-6">
             <div className="flex overflow-x-auto no-scrollbar items-center gap-2">
-              {categoriesList.map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${selectedCategory === cat
-                    ? 'bg-slate-900 text-white shadow-md'
-                    : 'text-slate-500 hover:text-azure-600 hover:bg-slate-100'
-                    }`}
+              {/* Links de verdade (o Google segue): cada editoria tem sua página. */}
+              <span className="whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium bg-slate-900 text-white shadow-md">
+                Todos
+              </span>
+              {categories.map(cat => (
+                <Link
+                  key={cat.slug}
+                  href={categoryPath(cat.slug)}
+                  className="whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 text-slate-500 hover:text-azure-600 hover:bg-slate-100"
                 >
-                  {cat}
-                </button>
+                  {cat.name}
+                </Link>
               ))}
             </div>
 
@@ -120,7 +117,7 @@ export function HomeView({ initialArticles }: HomeViewProps) {
             <div className="lg:col-span-8">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-xl md:text-2xl font-bold text-slate-900">
-                  {searchQuery ? "Resultados da busca" : (selectedCategory === "Todos" ? "Últimas Notícias" : selectedCategory)}
+                  {searchQuery ? "Resultados da busca" : "Últimas Notícias"}
                 </h2>
                 <span className="text-xs text-slate-400 uppercase tracking-wider font-medium hidden sm:block">
                   {new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
@@ -173,9 +170,14 @@ export function HomeView({ initialArticles }: HomeViewProps) {
                     <p className="text-sm text-slate-400">Nenhum artigo de opinião recente.</p>
                   )}
                 </div>
-                <button className="w-full mt-4 text-center text-xs font-bold text-azure-600 hover:text-azure-700 py-2 uppercase tracking-wider">
-                  Ver todos os colunistas
-                </button>
+                {opinionCategory && (
+                  <Link
+                    href={categoryPath(opinionCategory.slug)}
+                    className="block w-full mt-4 text-center text-xs font-bold text-azure-600 hover:text-azure-700 py-2 uppercase tracking-wider"
+                  >
+                    Ver todos os colunistas
+                  </Link>
+                )}
               </div>
 
               {/* Trending Widget */}

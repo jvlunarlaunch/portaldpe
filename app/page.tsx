@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { fetchArticles } from '@/api';
 import { HomeView } from '@/components/home/HomeView';
+import { fetchActiveCategories } from '@/lib/categories';
 import { HOME_TITLE, SITE_DESCRIPTION, jsonLdString, organizationJsonLd } from '@/lib/seo';
 
 export const metadata: Metadata = {
@@ -24,7 +25,7 @@ export const metadata: Metadata = {
 export const revalidate = 300;
 
 export default async function HomePage() {
-  const articles = await fetchArticles();
+  const [articles, categories] = await Promise.all([fetchArticles(), fetchActiveCategories()]);
 
   return (
     <>
@@ -32,7 +33,7 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLdString(organizationJsonLd()) }}
       />
-      <HomeView initialArticles={articles} />
+      <HomeView initialArticles={articles} categories={categories} />
     </>
   );
 }
