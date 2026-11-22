@@ -70,7 +70,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <PageViewTracker />
         </Suspense>
         <BackgroundWrapper>
-          <Navbar />
+          <Navbar categories={categories} />
           <main className="min-h-screen">{children}</main>
 
           <footer className="bg-white border-t border-slate-100 py-16 px-6">

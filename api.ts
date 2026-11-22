@@ -268,45 +268,33 @@ export const fetchArticleBySlug = async (slug: string): Promise<Article | null> 
     return mapArticle(data);
 };
 
-export const fetchRelatedArticles = async (id: string): Promise<Partial<Article>[]> => {
-    // Get categories of current article
-    const { data: currentCategories } = await supabase
-        .from('article_categories')
-        .select('category_id')
-        .eq('article_id', id);
-
-    if (!currentCategories || currentCategories.length === 0) return [];
-
-    // Get IDs of articles that share at least one category
-    const categoryIds = currentCategories.map(c => c.category_id);
-    const { data: relatedIds } = await supabase
-        .from('article_categories')
-        .select('article_id')
-        .in('category_id', categoryIds)
-        .neq('article_id', id)
-        .limit(20); // Limit pool to search
-
-    if (!relatedIds || relatedIds.length === 0) return [];
-
-    // Fetch actial articles
-    const uniqueArticleIds = Array.from(new Set(relatedIds.map(r => r.article_id))).slice(0, 3);
+/**
+ * Artigos relacionados: os mais recentes que dividem ao menos uma editoria com
+ * o artigo atual. Busca os últimos 100 publicados (sem o texto completo) e
+ * filtra aqui, o que evita listas enormes de IDs na URL da consulta.
+ */
+export const fetchRelatedArticles = async (
+    id: string,
+    categories: string[] = [],
+    limit = 6,
+): Promise<Article[]> => {
+    if (categories.length === 0) return [];
+    const wanted = new Set(categories);
+    const now = new Date().toISOString();
 
     const { data, error } = await supabase
         .from('articles_portaldpe')
-        .select('id, slug, title, image_url, article_categories(categories_portaldpe(name))')
-        .in('id', uniqueArticleIds)
-        .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${new Date().toISOString()})`);
+        .select('id, slug, title, excerpt, image_url, created_at, updated_at, status, scheduled_at, read_time, show_author, author_name, article_categories(categories_portaldpe(name)), authors_portaldpe(*)')
+        .or(`status.eq.published,and(status.eq.scheduled,scheduled_at.lte.${now})`)
+        .neq('id', id)
+        .order('created_at', { ascending: false })
+        .limit(100);
 
-    if (error) return [];
-    return data.map(r => ({
-        id: r.id.toString(),
-        slug: r.slug,
-        title: r.title,
-        imageUrl: r.image_url,
-        categories: r.article_categories
-            ? r.article_categories.map((ac: any) => ac.categories_portaldpe.name)
-            : []
-    }));
+    if (error || !data) return [];
+    return data
+        .map(mapArticle)
+        .filter((a) => a.categories?.some((c) => wanted.has(c)))
+        .slice(0, limit);
 };
 
 export const fetchCategories = async (): Promise<{ id: number, name: string, slug: string }[]> => {

@@ -1,18 +1,49 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
+import { ChevronDown, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MembershipModal } from '../ui/MembershipModal';
+import { categoryPath } from '@/lib/seo';
 
-export const Navbar: React.FC = () => {
+interface NavbarProps {
+  /** Editorias com artigos publicados (vêm do layout, no servidor). */
+  categories?: { name: string; slug: string }[];
+}
+
+export const Navbar: React.FC<NavbarProps> = ({ categories = [] }) => {
   const pathname = usePathname();
   const [isMembershipOpen, setIsMembershipOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const categoriesRef = useRef<HTMLDivElement>(null);
+
+  // Fecha os menus ao trocar de página.
+  useEffect(() => {
+    setCategoriesOpen(false);
+    setMobileMenuOpen(false);
+  }, [pathname]);
+
+  // Fecha a lista de editorias ao clicar fora dela ou apertar Esc.
+  useEffect(() => {
+    if (!categoriesOpen) return;
+    const onPointer = (e: MouseEvent) => {
+      if (categoriesRef.current && !categoriesRef.current.contains(e.target as Node)) setCategoriesOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setCategoriesOpen(false);
+    };
+    document.addEventListener('mousedown', onPointer);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onPointer);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [categoriesOpen]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -65,6 +96,39 @@ export const Navbar: React.FC = () => {
               >
                 Início
               </Link>
+              {categories.length > 0 && (
+                <div ref={categoriesRef} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setCategoriesOpen((v) => !v)}
+                    aria-expanded={categoriesOpen}
+                    aria-controls="menu-editorias"
+                    className={`flex items-center gap-1 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${pathname.startsWith('/categoria/') ? 'bg-white shadow-sm text-slate-900' : navTextColor}`}
+                  >
+                    Editorias
+                    <ChevronDown size={14} className={`transition-transform duration-200 ${categoriesOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  {/* Sempre no HTML (só escondido) para o Google seguir os links. */}
+                  <div
+                    id="menu-editorias"
+                    className={`${categoriesOpen ? 'block' : 'hidden'} absolute left-1/2 -translate-x-1/2 top-full mt-3 w-64 max-h-[70vh] overflow-y-auto rounded-2xl bg-white p-2 shadow-xl ring-1 ring-black/5`}
+                  >
+                    <ul>
+                      {categories.map((c) => (
+                        <li key={c.slug}>
+                          <Link
+                            href={categoryPath(c.slug)}
+                            onClick={() => setCategoriesOpen(false)}
+                            className={`block px-4 py-2 rounded-xl text-sm transition-colors ${pathname === categoryPath(c.slug) ? 'bg-slate-100 text-slate-900 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-azure-600'}`}
+                          >
+                            {c.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
               <Link
                 href="/about"
                 className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-300 ${isActive('/about') ? 'bg-white shadow-sm text-slate-900' : navTextColor}`}
@@ -99,8 +163,9 @@ export const Navbar: React.FC = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="fixed inset-0 bg-white/95 backdrop-blur-xl z-40 flex flex-col justify-center px-8 md:hidden"
+            className="fixed inset-0 bg-white/95 backdrop-blur-xl z-40 overflow-y-auto md:hidden"
           >
+            <div className="min-h-full flex flex-col justify-center px-8 pt-28 pb-12">
             <nav className="flex flex-col gap-6 text-center">
               <Link
                 href="/"
@@ -117,6 +182,25 @@ export const Navbar: React.FC = () => {
                 Quem Somos
               </Link>
 
+              {categories.length > 0 && (
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">Editorias</p>
+                  <ul className="flex flex-wrap justify-center gap-2">
+                    {categories.map((c) => (
+                      <li key={c.slug}>
+                        <Link
+                          href={categoryPath(c.slug)}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="inline-block px-4 py-2 rounded-full bg-slate-100 text-sm font-medium text-slate-700 hover:bg-azure-50 hover:text-azure-600 transition-colors"
+                        >
+                          {c.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
               <div className="h-px w-20 bg-slate-200 mx-auto my-4"></div>
 
               <button
@@ -130,8 +214,7 @@ export const Navbar: React.FC = () => {
               </button>
             </nav>
 
-            <div className="absolute bottom-10 left-0 w-full text-center">
-              <p className="text-slate-400 text-xs font-medium uppercase tracking-widest">Portal DPE</p>
+            <p className="mt-12 text-center text-slate-400 text-xs font-medium uppercase tracking-widest">Portal DPE</p>
             </div>
           </motion.div>
         )}

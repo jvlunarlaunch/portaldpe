@@ -80,7 +80,7 @@ export default async function ArticlePage({
   }
 
   const [relatedArticles, categorySlugs] = await Promise.all([
-    fetchRelatedArticles(article.id),
+    fetchRelatedArticles(article.id, article.categories),
     fetchCategorySlugMap(),
   ]);
 
